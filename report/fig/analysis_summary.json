@@ -1,0 +1,29 @@
+{
+  "calibration": {
+    "mean_abs_error": 15.6,
+    "median_abs_error": 6.0,
+    "max_abs_error": 58.0,
+    "min_abs_error": 0.0,
+    "n": 10
+  },
+  "self_sessions": {
+    "mae": 1.5,
+    "mape": 1.6904761904761905,
+    "entries": [
+      {
+        "session": "test1-84step",
+        "gt": 84,
+        "est": 82,
+        "abs_error": 2,
+        "rel_error_pct": 2.380952380952381
+      },
+      {
+        "session": "test2-100steps",
+        "gt": 100,
+        "est": 101,
+        "abs_error": 1,
+        "rel_error_pct": 1.0
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import torch
@@ -197,9 +197,58 @@ def build_split_datasets(
     test_ratio: float,
     spec: WindowSpec,
     show_progress: bool = True,
+    packed_cache_path: Optional[Path] = None,
+    rebuild_packed_cache: bool = False,
 ) -> Tuple[Dict[str, OxWalkWindowDataset], Dict[str, object]]:
+    def _build_packed_records(records_to_pack: Sequence[Record]) -> List[Dict[str, Any]]:
+        iterator = records_to_pack
+        if show_progress:
+            iterator = tqdm(records_to_pack, desc="Packing records", leave=False)
+
+        packed: List[Dict[str, Any]] = []
+        for rec in iterator:
+            _, acc, ann = load_oxwalk_file(rec.file_path, target_hz=spec.sample_rate_hz)
+            packed.append(
+                {
+                    "participant": rec.participant,
+                    "modality": rec.modality,
+                    "file_path": str(rec.file_path),
+                    "acc": acc.astype(np.float32),
+                    "ann": ann.astype(np.float32),
+                }
+            )
+        return packed
+
     records = list_oxwalk_records(dataset_root)
     all_participants = sorted({r.participant for r in records})
+
+    packed_records: Optional[List[Dict[str, Any]]] = None
+    if packed_cache_path is not None:
+        packed_cache_path = Path(packed_cache_path)
+        can_load_cache = packed_cache_path.exists() and (not rebuild_packed_cache)
+        if can_load_cache:
+            payload = torch.load(str(packed_cache_path), map_location="cpu", weights_only=False)
+            cached_sr = float(payload.get("sample_rate_hz", -1.0))
+            if abs(cached_sr - spec.sample_rate_hz) < 1e-6:
+                packed_records = payload.get("records", [])
+                print(f"Loaded packed cache: {packed_cache_path}")
+            else:
+                print(
+                    f"Packed cache sample-rate mismatch ({cached_sr} vs {spec.sample_rate_hz}); rebuilding {packed_cache_path}"
+                )
+
+        if packed_records is None:
+            packed_records = _build_packed_records(records)
+            packed_cache_path.parent.mkdir(parents=True, exist_ok=True)
+            torch.save(
+                {
+                    "version": 1,
+                    "sample_rate_hz": float(spec.sample_rate_hz),
+                    "records": packed_records,
+                },
+                str(packed_cache_path),
+            )
+            print(f"Saved packed cache: {packed_cache_path}")
 
     if n_participants is None or n_participants <= 0 or n_participants >= len(all_participants):
         selected_participants = list(all_participants)
@@ -209,28 +258,48 @@ def build_split_datasets(
     split = split_participants(selected_participants, val_ratio=val_ratio, test_ratio=test_ratio, seed=seed)
 
     by_participant: Dict[str, List[Record]] = {}
-    for rec in records:
-        if rec.participant in selected_participants:
-            by_participant.setdefault(rec.participant, []).append(rec)
+    if packed_records is None:
+        for rec in records:
+            if rec.participant in selected_participants:
+                by_participant.setdefault(rec.participant, []).append(rec)
 
     split_samples: Dict[str, List[Tuple[np.ndarray, np.ndarray, float]]] = {"train": [], "val": [], "test": []}
     split_files: Dict[str, List[str]] = {"train": [], "val": [], "test": []}
 
     for split_name, participants in split.items():
-        records_for_split: List[Record] = []
-        for pid in participants:
-            records_for_split.extend(by_participant.get(pid, []))
+        if packed_records is None:
+            records_for_split: List[Record] = []
+            for pid in participants:
+                records_for_split.extend(by_participant.get(pid, []))
 
-        iterator = records_for_split
-        if show_progress:
-            iterator = tqdm(records_for_split, desc=f"Loading {split_name}", leave=False)
+            iterator = records_for_split
+            if show_progress:
+                iterator = tqdm(records_for_split, desc=f"Loading {split_name}", leave=False)
 
-        for rec in iterator:
-            t, acc, ann = load_oxwalk_file(rec.file_path, target_hz=spec.sample_rate_hz)
-            windows = build_windows(acc, ann, spec)
-            if windows:
-                split_samples[split_name].extend(windows)
-                split_files[split_name].append(str(rec.file_path))
+            for rec in iterator:
+                _, acc, ann = load_oxwalk_file(rec.file_path, target_hz=spec.sample_rate_hz)
+                windows = build_windows(acc, ann, spec)
+                if windows:
+                    split_samples[split_name].extend(windows)
+                    split_files[split_name].append(str(rec.file_path))
+        else:
+            recs_for_split = [
+                rec
+                for rec in packed_records
+                if rec.get("participant") in participants
+            ]
+
+            iterator = recs_for_split
+            if show_progress:
+                iterator = tqdm(recs_for_split, desc=f"Loading {split_name}", leave=False)
+
+            for rec in iterator:
+                acc = np.asarray(rec["acc"], dtype=float)
+                ann = np.asarray(rec["ann"], dtype=float)
+                windows = build_windows(acc, ann, spec)
+                if windows:
+                    split_samples[split_name].extend(windows)
+                    split_files[split_name].append(str(rec.get("file_path", "")))
 
     if len(split_samples["train"]) == 0:
         raise RuntimeError("No training windows produced. Increase n_participants or adjust window settings.")
@@ -260,5 +329,10 @@ def build_split_datasets(
         },
         "n_windows": {k: len(v) for k, v in split_samples.items()},
     }
+
+    if packed_cache_path is not None:
+        meta["packed_cache_path"] = str(packed_cache_path)
+        meta["used_packed_cache"] = True
+        meta["rebuild_packed_cache"] = bool(rebuild_packed_cache)
 
     return datasets, meta

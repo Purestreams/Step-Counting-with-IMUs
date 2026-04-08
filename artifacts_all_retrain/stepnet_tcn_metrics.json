@@ -1,0 +1,444 @@
+{
+  "best_epoch": 4,
+  "best_val_loss": 0.3732055199945486,
+  "test": {
+    "loss": 0.45623360952543507,
+    "event_loss": 0.33635116321261094,
+    "count_loss": 0.7992162796428116,
+    "count_mae": 0.4840293515432212
+  },
+  "meta": {
+    "selected_participants": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29",
+      "P30",
+      "P31",
+      "P32",
+      "P33",
+      "P34",
+      "P35",
+      "P36",
+      "P37",
+      "P38",
+      "P39"
+    ],
+    "split_participants": {
+      "train": [
+        "P35",
+        "P34",
+        "P13",
+        "P24",
+        "P07",
+        "P11",
+        "P39",
+        "P23",
+        "P31",
+        "P04",
+        "P18",
+        "P02",
+        "P01",
+        "P06",
+        "P27",
+        "P08",
+        "P38",
+        "P20",
+        "P12",
+        "P33",
+        "P28",
+        "P14",
+        "P32"
+      ],
+      "val": [
+        "P03",
+        "P10",
+        "P36",
+        "P16",
+        "P26",
+        "P21",
+        "P37",
+        "P25"
+      ],
+      "test": [
+        "P29",
+        "P09",
+        "P30",
+        "P22",
+        "P19",
+        "P15",
+        "P05",
+        "P17"
+      ]
+    },
+    "split_files": {
+      "train": [
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P01_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P02_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P04_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P06_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P07_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P08_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P11_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P12_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P13_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P14_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P18_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P20_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P23_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P24_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P27_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P28_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P31_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P32_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P33_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P34_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P35_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P38_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P39_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P01_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P02_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P04_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P06_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P07_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P08_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P11_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P12_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P13_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P14_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P18_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P20_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P23_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P24_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P27_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P28_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P31_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P32_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P33_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P34_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P35_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P38_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P39_hip25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P01_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P02_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P04_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P06_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P07_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P08_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P11_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P12_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P13_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P14_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P18_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P20_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P23_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P24_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P27_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P28_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P31_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P32_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P33_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P34_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P35_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P38_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P39_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P01_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P02_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P04_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P06_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P07_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P08_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P11_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P12_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P13_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P14_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P18_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P20_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P23_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P24_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P27_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P28_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P31_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P32_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P33_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P34_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P35_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P38_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P39_wrist25.csv"
+      ],
+      "val": [
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P03_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P10_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P16_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P21_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P25_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P26_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P36_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P37_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P03_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P10_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P16_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P21_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P25_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P26_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P36_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P37_hip25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P03_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P10_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P16_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P21_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P25_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P26_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P36_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P37_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P03_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P10_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P16_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P21_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P25_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P26_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P36_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P37_wrist25.csv"
+      ],
+      "test": [
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P05_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P09_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P15_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P17_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P19_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P22_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P29_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_100Hz/P30_hip100.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P05_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P09_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P15_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P17_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P19_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P22_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P29_hip25.csv",
+        "testdata/OxWalk_Dec2022/Hip_25Hz/P30_hip25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P05_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P09_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P15_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P17_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P19_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P22_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P29_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_100Hz/P30_wrist100.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P05_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P09_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P15_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P17_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P19_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P22_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P29_wrist25.csv",
+        "testdata/OxWalk_Dec2022/Wrist_25Hz/P30_wrist25.csv"
+      ]
+    },
+    "feature_mean": [
+      0.26359403355785227,
+      -0.12387090285626806,
+      0.03328733655970277,
+      1.0147873793431923
+    ],
+    "feature_std": [
+      0.7284229408827095,
+      0.4736403429816127,
+      0.46538135132650565,
+      0.1662991103052227
+    ],
+    "spec": {
+      "sample_rate_hz": 50.0,
+      "window_seconds": 4.0,
+      "stride_seconds": 0.5,
+      "label_sigma_seconds": 0.06,
+      "window_size": 200
+    },
+    "n_windows": {
+      "train": 649794,
+      "val": 210000,
+      "test": 230164
+    },
+    "packed_cache_path": "testdata/OxWalk_Dec2022/oxwalk_packed_50hz.pt",
+    "used_packed_cache": true,
+    "rebuild_packed_cache": false
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train": {
+        "loss": 0.515846341050516,
+        "event_loss": 0.35376084531386065,
+        "count_loss": 1.080569933671651,
+        "count_mae": 0.5376860592308945
+      },
+      "val": {
+        "loss": 0.3736131482932109,
+        "event_loss": 0.2841734538141439,
+        "count_loss": 0.5962646005888094,
+        "count_mae": 0.37260832743256955
+      }
+    },
+    {
+      "epoch": 2,
+      "train": {
+        "loss": 0.45290965346370154,
+        "event_loss": 0.3328615739589601,
+        "count_loss": 0.8003205026697925,
+        "count_mae": 0.464294813960556
+      },
+      "val": {
+        "loss": 0.37531772458817075,
+        "event_loss": 0.2825330072535778,
+        "count_loss": 0.6185647602082555,
+        "count_mae": 0.37979787464056464
+      }
+    },
+    {
+      "epoch": 3,
+      "train": {
+        "loss": 0.43124043979044036,
+        "event_loss": 0.3248148574603824,
+        "count_loss": 0.709503856207442,
+        "count_mae": 0.44052324405336
+      },
+      "val": {
+        "loss": 0.37873398631424793,
+        "event_loss": 0.29145345964056607,
+        "count_loss": 0.5818701503092226,
+        "count_mae": 0.3663851169556597
+      }
+    },
+    {
+      "epoch": 4,
+      "train": {
+        "loss": 0.4169049248685987,
+        "event_loss": 0.3196990894755041,
+        "count_loss": 0.6480388773942557,
+        "count_mae": 0.4238684902275641
+      },
+      "val": {
+        "loss": 0.3732055199945486,
+        "event_loss": 0.2801295948031284,
+        "count_loss": 0.6205061420785839,
+        "count_mae": 0.39922827225260055
+      }
+    },
+    {
+      "epoch": 5,
+      "train": {
+        "loss": 0.40681272386096595,
+        "event_loss": 0.31624851043768754,
+        "count_loss": 0.6037614019602302,
+        "count_mae": 0.4108095236885266
+      },
+      "val": {
+        "loss": 0.3856041039423898,
+        "event_loss": 0.2923651847734434,
+        "count_loss": 0.6215927697125586,
+        "count_mae": 0.3657700297968811
+      }
+    },
+    {
+      "epoch": 6,
+      "train": {
+        "loss": 0.39834523536558225,
+        "event_loss": 0.3133251529626959,
+        "count_loss": 0.5668005267935475,
+        "count_mae": 0.40026889215773487
+      },
+      "val": {
+        "loss": 0.3837586319758223,
+        "event_loss": 0.2891666363671092,
+        "count_loss": 0.6306132773606451,
+        "count_mae": 0.3686549004729284
+      }
+    },
+    {
+      "epoch": 7,
+      "train": {
+        "loss": 0.3927290135481226,
+        "event_loss": 0.311407535423444,
+        "count_loss": 0.542143164164438,
+        "count_mae": 0.3927509787514454
+      },
+      "val": {
+        "loss": 0.39384042980843914,
+        "event_loss": 0.2915378142542468,
+        "count_loss": 0.6820174196367934,
+        "count_mae": 0.39506161208389157
+      }
+    },
+    {
+      "epoch": 8,
+      "train": {
+        "loss": 0.38694588396492907,
+        "event_loss": 0.3098335198764726,
+        "count_loss": 0.5140824077636238,
+        "count_mae": 0.383212632198972
+      },
+      "val": {
+        "loss": 0.4046319143828503,
+        "event_loss": 0.2897387446728427,
+        "count_loss": 0.7659544318198077,
+        "count_mae": 0.4045415739766764
+      }
+    },
+    {
+      "epoch": 9,
+      "train": {
+        "loss": 0.3824708510571577,
+        "event_loss": 0.3084113769995885,
+        "count_loss": 0.49372981155481865,
+        "count_mae": 0.3765694622918377
+      },
+      "val": {
+        "loss": 0.40243698592296884,
+        "event_loss": 0.29274677262438115,
+        "count_loss": 0.7312680586835159,
+        "count_mae": 0.3789060245519572
+      }
+    },
+    {
+      "epoch": 10,
+      "train": {
+        "loss": 0.3786370474757172,
+        "event_loss": 0.3072425349490849,
+        "count_loss": 0.47596339829794065,
+        "count_mae": 0.3703862199163812
+      },
+      "val": {
+        "loss": 0.4052430588281909,
+        "event_loss": 0.3008946249827076,
+        "count_loss": 0.6956562102468016,
+        "count_mae": 0.39504504163688337
+      }
+    }
+  ],
+  "checkpoint": "artifacts_all_retrain/stepnet_tcn_best.pt"
+}

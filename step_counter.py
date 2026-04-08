@@ -1,5 +1,8 @@
-import numpy as np
+from pathlib import Path
 from typing import Tuple
+
+import numpy as np
+from infer_nn_step_counter import NNStepCounter
 
 
 class StepCounter:
@@ -7,41 +10,46 @@ class StepCounter:
     One step counter class for both offline and real-time usage.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        model_path: str = "artifacts_all_retrain/stepnet_tcn_best.pt",
+        device: str = "auto",
+        prob_threshold: float = 0.68,
+        min_step_interval: float = 0.33,
+        context_seconds: float = 4.0,
+    ):
         """
-        Initialize the step counter.
+        Initialize the NN-backed step counter.
         """
-        self._alpha = 0.3
-        self._stats_alpha = 0.015
-        self._threshold_std_gain = 0.32
-        self._min_threshold = 0.02
-        self._min_step_interval = 0.3
-        self._max_step_interval = 2.0
-        self._prominence_gain = 0.07
-        self._min_prominence = 0.005
-        self._init_warmup_samples = 200
-        self.reset()
+        resolved_model = Path(model_path)
+        if not resolved_model.exists():
+            raise FileNotFoundError(
+                f"Trained model checkpoint not found: {resolved_model}. "
+                "Train a model first or pass a valid model_path to StepCounter(...)."
+            )
+
+        self._backend = NNStepCounter(
+            model_path=str(resolved_model),
+            device=device,
+            prob_threshold=prob_threshold,
+            min_step_interval=min_step_interval,
+            context_seconds=context_seconds,
+        )
 
     def reset(self) -> None:
         """
         Reset internal state such as buffers and cumulative count.
         After reset(), total_steps should be 0.
         """
-        self.total_steps = 0
-        self.step_timestamps = []
+        self._backend.reset()
 
-        self._ema_prev = None
-        self._det_prev2 = None
-        self._det_prev1 = None
-        self._time_prev2 = None
-        self._time_prev1 = None
+    @property
+    def total_steps(self) -> int:
+        return int(self._backend.total_steps)
 
-        self._running_mean = 0.0
-        self._running_var = 0.0
-        self._stats_initialized = False
-        self._sample_count = 0
-
-        self._last_step_time = None
+    @property
+    def step_timestamps(self):
+        return self._backend.step_timestamps
 
     def _validate_input(self, data: dict) -> Tuple[np.ndarray, np.ndarray]:
         if "time" not in data or "acc" not in data:
@@ -59,132 +67,54 @@ class StepCounter:
 
         return t, acc
 
-    def _update_running_stats(self, x: float) -> float:
-        if not self._stats_initialized:
-            self._running_mean = x
-            self._running_var = 1e-6
-            self._stats_initialized = True
-            return 0.0
+    def _prepare_offline_stream(self, t: np.ndarray, acc: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        if t.size == 0:
+            return t, acc
 
-        delta = x - self._running_mean
-        self._running_mean += self._stats_alpha * delta
-        centered = x - self._running_mean
-        self._running_var = (1.0 - self._stats_alpha) * self._running_var + self._stats_alpha * (centered ** 2)
-        return centered
+        order = np.argsort(t)
+        t = t[order]
+        acc = acc[order]
 
-    def _current_threshold(self) -> float:
-        std = float(np.sqrt(max(self._running_var, 1e-8)))
-        adaptive = self._threshold_std_gain * std
-        return float(max(self._min_threshold, adaptive))
+        unique_mask = np.r_[True, np.diff(t) > 0]
+        t = t[unique_mask]
+        acc = acc[unique_mask]
 
-    def _can_accept_step(self, candidate_t: float) -> bool:
-        if self._last_step_time is None:
-            return True
+        if t.size > 0:
+            t = t - t[0]
 
-        dt = candidate_t - self._last_step_time
-        if dt < self._min_step_interval:
-            return False
+        return t, acc
 
-        if dt > self._max_step_interval:
-            return True
+    def _resample_to_rate(self, t: np.ndarray, acc: np.ndarray, target_hz: float) -> Tuple[np.ndarray, np.ndarray]:
+        if t.size < 2:
+            return t, acc
 
-        return True
+        t0 = float(t[0])
+        t1 = float(t[-1])
+        if t1 <= t0:
+            return t, acc
 
-    def _process_sample(self, t: float, acc_xyz: np.ndarray) -> float:
-        amag = float(np.sqrt(np.dot(acc_xyz, acc_xyz)))
-
-        if self._ema_prev is None:
-            smoothed = amag
-        else:
-            smoothed = self._alpha * amag + (1.0 - self._alpha) * self._ema_prev
-        self._ema_prev = smoothed
-
-        centered = self._update_running_stats(smoothed)
-        self._sample_count += 1
-
-        return centered
+        dt = 1.0 / float(target_hz)
+        t_new = np.arange(t0, t1 + 1e-12, dt, dtype=float)
+        acc_new = np.column_stack(
+            [
+                np.interp(t_new, t, acc[:, 0]),
+                np.interp(t_new, t, acc[:, 1]),
+                np.interp(t_new, t, acc[:, 2]),
+            ]
+        )
+        return t_new, acc_new
 
     def update(self, data_chunk: dict) -> dict:
         """
         Real-time update: process a chunk of new samples.
         """
-        t, acc = self._validate_input(data_chunk)
-
-        new_steps_ts = []
-
-        if t.size == 0:
-            return {
-                "new_steps": 0,
-                "total_steps": int(self.total_steps),
-                "new_step_timestamps": np.asarray([], dtype=float),
-                "diagnostics": {
-                    "threshold": float(self._current_threshold()) if self._stats_initialized else 0.0,
-                    "running_mean": float(self._running_mean),
-                    "running_std": float(np.sqrt(max(self._running_var, 0.0))),
-                    "samples_seen": int(self._sample_count),
-                },
-            }
-
-        for idx in range(t.shape[0]):
-            si = self._process_sample(float(t[idx]), acc[idx])
-
-            if self._det_prev1 is not None and self._det_prev2 is not None:
-                mid_val = self._det_prev1
-                left_val = self._det_prev2
-                right_val = si
-
-                is_peak = mid_val > left_val and mid_val >= right_val
-
-                if is_peak and self._sample_count >= self._init_warmup_samples:
-                    thr = self._current_threshold()
-                    std = float(np.sqrt(max(self._running_var, 1e-8)))
-                    prominence = mid_val - max(left_val, right_val)
-                    prominence_thr = max(self._min_prominence, self._prominence_gain * std)
-
-                    if (
-                        mid_val >= thr
-                        and prominence >= prominence_thr
-                        and self._time_prev1 is not None
-                        and self._can_accept_step(self._time_prev1)
-                    ):
-                        self.total_steps += 1
-                        self._last_step_time = self._time_prev1
-                        self.step_timestamps.append(self._time_prev1)
-                        new_steps_ts.append(self._time_prev1)
-
-            self._det_prev2 = self._det_prev1
-            self._det_prev1 = si
-            self._time_prev2 = self._time_prev1
-            self._time_prev1 = float(t[idx])
-
-        return {
-            "new_steps": int(len(new_steps_ts)),
-            "total_steps": int(self.total_steps),
-            "new_step_timestamps": np.asarray(new_steps_ts, dtype=float),
-            "diagnostics": {
-                "threshold": float(self._current_threshold()),
-                "running_mean": float(self._running_mean),
-                "running_std": float(np.sqrt(max(self._running_var, 0.0))),
-                "samples_seen": int(self._sample_count),
-            },
-        }
+        return self._backend.update(data_chunk)
 
     def run_offline(self, data: dict) -> dict:
         """
         Offline processing: process a full recording.
         """
-        self.reset()
-        out = self.update(data)
-
-        step_timestamps = np.asarray(self.step_timestamps, dtype=float)
-        if step_timestamps.ndim != 1:
-            step_timestamps = step_timestamps.reshape(-1)
-
-        diagnostics = dict(out.get("diagnostics", {}))
-        diagnostics["mode"] = "offline"
-
-        return {
-            "step_count": int(max(0, self.total_steps)),
-            "step_timestamps": step_timestamps,
-            "diagnostics": diagnostics,
-        }
+        t, acc = self._validate_input(data)
+        t, acc = self._prepare_offline_stream(t, acc)
+        t, acc = self._resample_to_rate(t, acc, self._backend.sample_rate_hz)
+        return self._backend.run_offline({"time": t, "acc": acc})

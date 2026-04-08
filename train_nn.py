@@ -41,6 +41,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "mps", "cuda"])
     parser.add_argument("--out-dir", type=Path, default=Path("artifacts"))
     parser.add_argument(
+        "--packed-cache",
+        type=Path,
+        default=None,
+        help="Path to packed dataset cache (.pt). Defaults to <dataset-root>/oxwalk_packed_<sample-rate>hz.pt",
+    )
+    parser.add_argument(
+        "--rebuild-packed-cache",
+        action="store_true",
+        help="Force rebuild of packed dataset cache",
+    )
+    parser.add_argument(
         "--no-progress",
         action="store_true",
         help="Disable tqdm progress bars",
@@ -141,6 +152,14 @@ def main() -> None:
         label_sigma_seconds=args.label_sigma_seconds,
     )
 
+    if args.packed_cache is None:
+        sr_tag = int(round(args.sample_rate))
+        packed_cache_path = args.dataset_root / f"oxwalk_packed_{sr_tag}hz.pt"
+    else:
+        packed_cache_path = args.packed_cache
+
+    print(f"Packed cache path: {packed_cache_path}")
+
     datasets, meta = build_split_datasets(
         dataset_root=args.dataset_root,
         n_participants=args.n_participants,
@@ -149,6 +168,8 @@ def main() -> None:
         test_ratio=args.test_ratio,
         spec=spec,
         show_progress=not args.no_progress,
+        packed_cache_path=packed_cache_path,
+        rebuild_packed_cache=args.rebuild_packed_cache,
     )
 
     device = pick_device(args.device)

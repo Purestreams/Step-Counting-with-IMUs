@@ -307,77 +307,86 @@ PAGE_HTML = """
   <meta charset=\"utf-8\" />
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
   <title>Realtime Step Counting Dashboard</title>
-  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">
-  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>
-  <link href=\"https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap\" rel=\"stylesheet\">
   <script src=\"https://cdn.tailwindcss.com\"></script>
   <script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>
   <script src=\"https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js\"></script>
   <script src=\"https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js\"></script>
   <style>
-    :root {
-      --theme-blue: #5BCEFA;
-      --theme-pink: #F5A9B8;
-      --theme-white: #FFFFFF;
-    }
     body {
-      font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 0% 0%, rgba(91, 206, 250, 0.20), transparent 60%),
-        radial-gradient(1200px 600px at 100% 0%, rgba(245, 169, 184, 0.20), transparent 60%),
-        var(--theme-white);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 20px;
+      color: #111827;
+      background: #ffffff;
     }
+    .page { max-width: 1200px; margin: 0 auto; }
+    .header-row { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    .button-row { display: flex; gap: 8px; }
+    .btn {
+      border: 1px solid #d0d7de;
+      background: #f6f8fa;
+      color: #111827;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: #eaeef2; }
     .dashboard-card {
-      background: rgba(255, 255, 255, 0.86);
-      border: 1px solid rgba(17, 24, 39, 0.08);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 20px rgba(17, 24, 39, 0.07);
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 12px;
     }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 8px 14px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 1200px) {
+      .charts-grid { grid-template-columns: 1fr 1fr; }
+    }
     .chart-wrap { position: relative; width: 100%; height: clamp(280px, 40vh, 430px); }
     .chart-wrap canvas { width: 100% !important; height: 100% !important; display: block; }
+    .subtitle { color: #4b5563; margin-top: 4px; }
   </style>
 </head>
-<body class=\"min-h-screen text-black antialiased\">
-  <main class=\"max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8\">
-    <section class=\"dashboard-card rounded-2xl p-5 md:p-6 mb-5\">
-      <div class=\"flex flex-col gap-3 md:flex-row md:items-end md:justify-between\">
+<body>
+  <main class=\"page\">
+    <section class=\"dashboard-card\" style=\"margin-bottom:14px;\">
+      <div class=\"header-row\">
         <div>
-          <h1 class=\"text-2xl md:text-3xl font-extrabold tracking-tight\">Realtime Step Counting Dashboard</h1>
-          <p class=\"text-sm md:text-base text-black/70 mt-1\">Streaming from phyphox with live acceleration and step analytics.</p>
+          <h1 style=\"font-size:28px; font-weight:700; margin:0;\">Realtime Step Counting Dashboard</h1>
+          <p class=\"subtitle\">Streaming from phyphox with live acceleration and detected step points.</p>
         </div>
-        <div class=\"flex items-center gap-3\">
-          <button id=\"resetTimeBtn\" class=\"rounded-xl px-3 py-2 text-sm font-semibold border border-black/10 bg-white hover:bg-black hover:text-white transition-colors\">Reset Time</button>
-          <button id=\"resetZoomBtn\" class=\"rounded-xl px-3 py-2 text-sm font-semibold border border-black/10 bg-white hover:bg-black hover:text-white transition-colors\">Reset Zoom</button>
+        <div class=\"button-row\">
+          <button id=\"resetTimeBtn\" class=\"btn\">Reset Time</button>
+          <button id=\"resetZoomBtn\" class=\"btn\">Reset Zoom</button>
         </div>
       </div>
     </section>
 
-    <section class=\"grid grid-cols-1 xl:grid-cols-2 gap-4\">
-      <article class=\"dashboard-card rounded-2xl p-4 md:p-5\">
-        <h2 class=\"text-lg font-bold mb-3\">Acceleration Data (All buffered points)</h2>
+    <section class=\"charts-grid\">
+      <article class=\"dashboard-card\">
+        <h2 style=\"font-size:20px; font-weight:700; margin:0 0 10px 0;\">Acceleration Data (All buffered points)</h2>
         <div class=\"chart-wrap\">
           <canvas id=\"accChart\"></canvas>
         </div>
       </article>
-      <article class=\"dashboard-card rounded-2xl p-4 md:p-5\">
-        <h2 class=\"text-lg font-bold mb-3\">Magnitude + Step Markers</h2>
+      <article class=\"dashboard-card\">
+        <h2 style=\"font-size:20px; font-weight:700; margin:0 0 10px 0;\">Magnitude + Step Markers</h2>
         <div class=\"chart-wrap\">
           <canvas id=\"magChart\"></canvas>
         </div>
       </article>
     </section>
 
-    <section class=\"dashboard-card rounded-2xl p-4 md:p-5 mt-4\">
-      <h2 class=\"text-lg font-bold mb-3\">Stats</h2>
-      <div class=\"stats-grid text-sm md:text-base\" id=\"stats\"></div>
-      <p class=\"text-sm md:text-base mt-3\" id=\"error\"></p>
+    <section class=\"dashboard-card\" style=\"margin-top:14px;\">
+      <h2 style=\"font-size:20px; font-weight:700; margin:0 0 10px 0;\">Stats</h2>
+      <div class=\"stats-grid\" id=\"stats\"></div>
+      <p style=\"margin-top:10px;\" id=\"error\"></p>
     </section>
   </main>
 
 <script>
-Chart.defaults.font.family = "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif";
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 Chart.defaults.font.size = 13;
 Chart.defaults.color = '#111827';
 
@@ -413,9 +422,9 @@ const accChart = new Chart(accCtx, {
   data: {
     labels: [],
     datasets: [
-      { label: 'ax', data: [], borderColor: '#5BCEFA', pointRadius: 0, borderWidth: 2, parsing: false },
-      { label: 'ay', data: [], borderColor: '#F5A9B8', pointRadius: 0, borderWidth: 2, parsing: false },
-      { label: 'az', data: [], borderColor: '#6b7280', pointRadius: 0, borderWidth: 1.8, parsing: false },
+      { label: 'ax', data: [], borderColor: '#1f77b4', pointRadius: 0, borderWidth: 1.6, parsing: false },
+      { label: 'ay', data: [], borderColor: '#6b7280', pointRadius: 0, borderWidth: 1.3, parsing: false },
+      { label: 'az', data: [], borderColor: '#9ca3af', pointRadius: 0, borderWidth: 1.3, parsing: false },
     ]
   },
   options: {
@@ -441,8 +450,8 @@ const magChart = new Chart(magCtx, {
   data: {
     labels: [],
     datasets: [
-      { label: '|a|', data: [], borderColor: '#5BCEFA', pointRadius: 0, borderWidth: 2, parsing: false },
-      { label: 'Steps', data: [], borderColor: '#F5A9B8', backgroundColor: '#F5A9B8', showLine: false, pointRadius: 8, pointHoverRadius: 10, pointStyle: 'triangle', parsing: false },
+      { label: '|a|', data: [], borderColor: '#1f77b4', pointRadius: 0, borderWidth: 1.8, parsing: false },
+      { label: 'Steps', data: [], borderColor: '#d62728', backgroundColor: '#d62728', showLine: false, pointRadius: 6, pointHoverRadius: 8, pointStyle: 'crossRot', parsing: false },
     ]
   },
   options: {
