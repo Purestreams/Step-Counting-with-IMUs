@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import requests
 
+from infer_nn_step_counter import NNStepCounter
 from step_counter import StepCounter
 
 
@@ -18,6 +19,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--acc-z", type=str, default="az", help="phyphox z-acc buffer name")
     parser.add_argument("--poll-interval", type=float, default=0.05, help="Polling interval in seconds")
     parser.add_argument("--window-seconds", type=float, default=12.0, help="Visible curve window length")
+    parser.add_argument("--backend", type=str, default="heuristic", choices=["heuristic", "nn"], help="Step counter backend")
+    parser.add_argument("--model-path", type=str, default=None, help="Path to NN checkpoint (.pt) when backend=nn")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "mps", "cuda"], help="NN inference device")
+    parser.add_argument("--nn-prob-threshold", type=float, default=0.68, help="Event probability threshold for NN backend")
+    parser.add_argument("--nn-context-seconds", type=float, default=4.0, help="Context length for NN streaming inference")
     return parser.parse_args()
 
 
@@ -52,7 +58,18 @@ def extract_chunk(payload: dict, time_buf: str, acc_bufs: List[str]) -> Tuple[np
 def main() -> None:
     args = parse_args()
 
-    counter = StepCounter()
+    if args.backend == "nn":
+        if args.model_path is None:
+            raise ValueError("--model-path is required when --backend nn")
+        counter = NNStepCounter(
+            model_path=args.model_path,
+            device=args.device,
+            prob_threshold=args.nn_prob_threshold,
+            min_step_interval=0.30,
+            context_seconds=args.nn_context_seconds,
+        )
+    else:
+        counter = StepCounter()
     time_buf = args.time_buffer
     acc_bufs = [args.acc_x, args.acc_y, args.acc_z]
 

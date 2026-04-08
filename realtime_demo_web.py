@@ -7,6 +7,7 @@ import numpy as np
 import requests
 from flask import Flask, jsonify, render_template_string
 
+from infer_nn_step_counter import NNStepCounter
 from step_counter import StepCounter
 
 
@@ -18,9 +19,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--acc-y", type=str, default="ay", help="phyphox y-acc buffer name")
     parser.add_argument("--acc-z", type=str, default="az", help="phyphox z-acc buffer name")
     parser.add_argument("--poll-interval", type=float, default=0.05, help="Polling interval in seconds")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Web server host")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Web server host")
     parser.add_argument("--port", type=int, default=8000, help="Web server port")
     parser.add_argument("--max-points", type=int, default=6000, help="Max points kept in memory")
+    parser.add_argument("--backend", type=str, default="heuristic", choices=["heuristic", "nn"], help="Step counter backend")
+    parser.add_argument("--model-path", type=str, default=None, help="Path to NN checkpoint (.pt) when backend=nn")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "mps", "cuda"], help="NN inference device")
+    parser.add_argument("--nn-prob-threshold", type=float, default=0.68, help="Event probability threshold for NN backend")
+    parser.add_argument("--nn-context-seconds", type=float, default=4.0, help="Context length for NN streaming inference")
     return parser.parse_args()
 
 
@@ -36,11 +42,38 @@ def fetch_new(base_url: str, time_buf: str, acc_bufs: List[str], last_t: Optiona
     response.raise_for_status()
     return response.json()
 
+def _extract_series(payload: dict, key: str) -> np.ndarray:
+    return np.asarray(payload["buffer"][key]["buffer"], dtype=float)
+
+
+def _find_first_key(keys: List[str], candidates: List[str]) -> Optional[str]:
+    keyset = {k.lower(): k for k in keys}
+    for candidate in candidates:
+        found = keyset.get(candidate.lower())
+        if found is not None:
+            return found
+    for key in keys:
+        low = key.lower()
+        if any(candidate in low for candidate in candidates):
+            return key
+    return None
+
 
 class RealtimeWebDemo:
     def __init__(self, args: argparse.Namespace):
         self.args = args
-        self.counter = StepCounter()
+        if args.backend == "nn":
+            if args.model_path is None:
+                raise ValueError("--model-path is required when --backend nn")
+            self.counter = NNStepCounter(
+                model_path=args.model_path,
+                device=args.device,
+                prob_threshold=args.nn_prob_threshold,
+                min_step_interval=0.30,
+                context_seconds=args.nn_context_seconds,
+            )
+        else:
+            self.counter = StepCounter()
         self.time_buf = args.time_buffer
         self.acc_bufs = [args.acc_x, args.acc_y, args.acc_z]
 
@@ -62,12 +95,41 @@ class RealtimeWebDemo:
         self.total_chunks = 0
         self.last_chunk_samples = 0
         self.last_chunk_steps = 0
+        self.last_diagnostics: Dict[str, object] = {}
 
         self.status: Dict[str, object] = {}
 
         self.lock = threading.Lock()
         self.stop_event = threading.Event()
         self.worker = threading.Thread(target=self._poll_loop, daemon=True)
+
+    def _probe_and_autodetect_buffers(self) -> bool:
+        try:
+            response = requests.get(self.args.base_url.rstrip("/") + "/get", timeout=2.0)
+            response.raise_for_status()
+            payload = response.json()
+        except requests.RequestException:
+            return False
+
+        return self._autodetect_buffers_from_payload(payload)
+
+    def _autodetect_buffers_from_payload(self, payload: dict) -> bool:
+        buffer = payload.get("buffer", {})
+        if not isinstance(buffer, dict) or len(buffer) == 0:
+            return False
+
+        keys = list(buffer.keys())
+        time_key = _find_first_key(keys, ["time", "timestamp", "t"])
+        x_key = _find_first_key(keys, ["ax", "accx", "acc_x", "x"])
+        y_key = _find_first_key(keys, ["ay", "accy", "acc_y", "y"])
+        z_key = _find_first_key(keys, ["az", "accz", "acc_z", "z"])
+
+        if time_key and x_key and y_key and z_key:
+            self.time_buf = time_key
+            self.acc_bufs = [x_key, y_key, z_key]
+            return True
+
+        return False
 
     def start(self) -> None:
         self.worker.start()
@@ -94,6 +156,7 @@ class RealtimeWebDemo:
         self.total_chunks = 0
         self.last_chunk_samples = 0
         self.last_chunk_steps = 0
+        self.last_diagnostics = {}
 
     def _append_histories(
         self,
@@ -154,13 +217,28 @@ class RealtimeWebDemo:
                     self._reset_for_new_session(new_session)
 
             try:
-                t = np.asarray(payload["buffer"][self.time_buf]["buffer"], dtype=float)
-                ax = np.asarray(payload["buffer"][self.acc_bufs[0]]["buffer"], dtype=float)
-                ay = np.asarray(payload["buffer"][self.acc_bufs[1]]["buffer"], dtype=float)
-                az = np.asarray(payload["buffer"][self.acc_bufs[2]]["buffer"], dtype=float)
+                t = _extract_series(payload, self.time_buf)
+                ax = _extract_series(payload, self.acc_bufs[0])
+                ay = _extract_series(payload, self.acc_bufs[1])
+                az = _extract_series(payload, self.acc_bufs[2])
             except (KeyError, TypeError, ValueError) as exc:
+                recovered = self._autodetect_buffers_from_payload(payload)
+                if not recovered:
+                    recovered = self._probe_and_autodetect_buffers()
+
+                if recovered:
+                    with self.lock:
+                        self.last_error = (
+                            f"Buffer names auto-detected: time={self.time_buf}, acc={self.acc_bufs}"
+                        )
+                    time.sleep(self.args.poll_interval)
+                    continue
+
                 with self.lock:
-                    self.last_error = f"BufferParseError: {str(exc)}"
+                    self.last_error = (
+                        f"BufferParseError: {str(exc)}. "
+                        f"Configured time='{self.time_buf}', acc={self.acc_bufs}"
+                    )
                 time.sleep(self.args.poll_interval)
                 continue
 
@@ -184,6 +262,7 @@ class RealtimeWebDemo:
                 self.total_samples += n
                 self.last_chunk_samples = n
                 self.last_chunk_steps = int(out["new_steps"])
+                self.last_diagnostics = dict(out.get("diagnostics", {}))
                 self.last_update_wall_time = time.time()
                 self.last_error = ""
                 self._append_histories(t, ax, ay, az, new_step_ts)
@@ -191,32 +270,34 @@ class RealtimeWebDemo:
             time.sleep(self.args.poll_interval)
 
     def snapshot(self) -> dict:
-        with self.lock:
-            return {
-                "time": self.t_hist.tolist(),
-                "ax": self.ax_hist.tolist(),
-                "ay": self.ay_hist.tolist(),
-                "az": self.az_hist.tolist(),
-                "amag": self.amag_hist.tolist(),
-                "step_timestamps": self.step_ts_hist.tolist(),
-                "step_totals": self.step_total_hist.tolist(),
-                "stats": {
-                    "total_steps": int(self.counter.total_steps),
-                    "total_samples": int(self.total_samples),
-                    "total_chunks": int(self.total_chunks),
-                    "last_chunk_samples": int(self.last_chunk_samples),
-                    "last_chunk_steps": int(self.last_chunk_steps),
-                    "last_sensor_time": float(self.last_t) if self.last_t is not None else None,
-                    "last_update_unix": float(self.last_update_wall_time),
-                    "threshold": float(self.counter._current_threshold()),
-                    "status": self.status,
-                    "last_error": self.last_error,
-                    "buffer_names": {
-                        "time": self.time_buf,
-                        "acc": self.acc_bufs,
-                    },
-                },
-            }
+      with self.lock:
+        thr_obj = self.last_diagnostics.get("threshold", 0.0)
+        threshold = float(thr_obj) if isinstance(thr_obj, (int, float, np.floating)) else 0.0
+        return {
+          "time": self.t_hist.tolist(),
+          "ax": self.ax_hist.tolist(),
+          "ay": self.ay_hist.tolist(),
+          "az": self.az_hist.tolist(),
+          "amag": self.amag_hist.tolist(),
+          "step_timestamps": self.step_ts_hist.tolist(),
+          "step_totals": self.step_total_hist.tolist(),
+          "stats": {
+            "total_steps": int(self.counter.total_steps),
+            "total_samples": int(self.total_samples),
+            "total_chunks": int(self.total_chunks),
+            "last_chunk_samples": int(self.last_chunk_samples),
+            "last_chunk_steps": int(self.last_chunk_steps),
+            "last_sensor_time": float(self.last_t) if self.last_t is not None else None,
+            "last_update_unix": float(self.last_update_wall_time),
+            "threshold": threshold,
+            "status": self.status,
+            "last_error": self.last_error,
+            "buffer_names": {
+              "time": self.time_buf,
+              "acc": self.acc_bufs,
+            },
+          },
+        }
 
 
 PAGE_HTML = """

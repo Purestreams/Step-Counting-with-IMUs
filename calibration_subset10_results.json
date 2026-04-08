@@ -1,0 +1,112 @@
+{
+  "seed": 20260408,
+  "dataset_root": "testdata/OxWalk_Dec2022",
+  "n_samples": 10,
+  "window_seconds": 120.0,
+  "trials": 40,
+  "selected_files": [
+    "testdata/OxWalk_Dec2022/Hip_100Hz/P03_hip100.csv",
+    "testdata/OxWalk_Dec2022/Hip_100Hz/P20_hip100.csv",
+    "testdata/OxWalk_Dec2022/Hip_25Hz/P03_hip25.csv",
+    "testdata/OxWalk_Dec2022/Hip_25Hz/P28_hip25.csv",
+    "testdata/OxWalk_Dec2022/Hip_25Hz/P35_hip25.csv",
+    "testdata/OxWalk_Dec2022/Wrist_100Hz/P18_wrist100.csv",
+    "testdata/OxWalk_Dec2022/Wrist_25Hz/P14_wrist25.csv",
+    "testdata/OxWalk_Dec2022/Wrist_25Hz/P20_wrist25.csv",
+    "testdata/OxWalk_Dec2022/Wrist_25Hz/P23_wrist25.csv",
+    "testdata/OxWalk_Dec2022/Wrist_25Hz/P27_wrist25.csv"
+  ],
+  "best_params": {
+    "alpha": 0.3,
+    "stats_alpha": 0.015,
+    "threshold_std_gain": 0.32,
+    "min_threshold": 0.02,
+    "min_step_interval": 0.3,
+    "prominence_gain": 0.07,
+    "min_prominence": 0.005
+  },
+  "best_mae": 15.6,
+  "best_mape": 17.51247669343199,
+  "per_sample": [
+    {
+      "file": "testdata/OxWalk_Dec2022/Hip_100Hz/P03_hip100.csv",
+      "duration_s": 120.0,
+      "ground_truth": 12,
+      "estimated": 7,
+      "abs_error": 5,
+      "rel_error_pct": 41.666666666666664
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Hip_100Hz/P20_hip100.csv",
+      "duration_s": 120.0,
+      "ground_truth": 134,
+      "estimated": 95,
+      "abs_error": 39,
+      "rel_error_pct": 29.104477611940297
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Hip_25Hz/P03_hip25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 12,
+      "estimated": 11,
+      "abs_error": 1,
+      "rel_error_pct": 8.333333333333334
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Hip_25Hz/P28_hip25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 21,
+      "estimated": 26,
+      "abs_error": 5,
+      "rel_error_pct": 23.80952380952381
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Hip_25Hz/P35_hip25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 78,
+      "estimated": 86,
+      "abs_error": 8,
+      "rel_error_pct": 10.256410256410257
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Wrist_100Hz/P18_wrist100.csv",
+      "duration_s": 119.99000000000001,
+      "ground_truth": 71,
+      "estimated": 78,
+      "abs_error": 7,
+      "rel_error_pct": 9.859154929577464
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Wrist_25Hz/P14_wrist25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 216,
+      "estimated": 158,
+      "abs_error": 58,
+      "rel_error_pct": 26.85185185185185
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Wrist_25Hz/P20_wrist25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 134,
+      "estimated": 106,
+      "abs_error": 28,
+      "rel_error_pct": 20.895522388059703
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Wrist_25Hz/P23_wrist25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 115,
+      "estimated": 120,
+      "abs_error": 5,
+      "rel_error_pct": 4.3478260869565215
+    },
+    {
+      "file": "testdata/OxWalk_Dec2022/Wrist_25Hz/P27_wrist25.csv",
+      "duration_s": 120.0,
+      "ground_truth": 107,
+      "estimated": 107,
+      "abs_error": 0,
+      "rel_error_pct": 0.0
+    }
+  ]
+}
