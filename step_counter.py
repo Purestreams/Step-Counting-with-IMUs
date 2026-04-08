@@ -11,14 +11,14 @@ class StepCounter:
         """
         Initialize the step counter.
         """
-        self._alpha = 0.25
-        self._stats_alpha = 0.01
-        self._threshold_std_gain = 0.35
-        self._min_threshold = 0.03
-        self._min_step_interval = 0.25
+        self._alpha = 0.3
+        self._stats_alpha = 0.015
+        self._threshold_std_gain = 0.32
+        self._min_threshold = 0.02
+        self._min_step_interval = 0.3
         self._max_step_interval = 2.0
-        self._prominence_gain = 0.05
-        self._min_prominence = 0.01
+        self._prominence_gain = 0.07
+        self._min_prominence = 0.005
         self._init_warmup_samples = 200
         self.reset()
 
@@ -126,8 +126,7 @@ class StepCounter:
             }
 
         for idx in range(t.shape[0]):
-            ti = float(t[idx])
-            si = self._process_sample(ti, acc[idx])
+            si = self._process_sample(float(t[idx]), acc[idx])
 
             if self._det_prev1 is not None and self._det_prev2 is not None:
                 mid_val = self._det_prev1
@@ -156,7 +155,7 @@ class StepCounter:
             self._det_prev2 = self._det_prev1
             self._det_prev1 = si
             self._time_prev2 = self._time_prev1
-            self._time_prev1 = ti
+            self._time_prev1 = float(t[idx])
 
         return {
             "new_steps": int(len(new_steps_ts)),
