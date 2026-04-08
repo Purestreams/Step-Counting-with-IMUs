@@ -1,0 +1,24 @@
+[
+  {
+    "folder_name": "test1-84step",
+    "step_count": 82,
+    "duration_seconds": 60.957662750021996,
+    "samples_raw": 6100,
+    "sample_rate_raw_hz": 100.0500250125065,
+    "sample_rate_model_hz": 50.0,
+    "steps_per_min": 80.71175596374428,
+    "source_csv": "testdata/test1-84step/Raw Data.csv",
+    "report_file": "test1-84step.html"
+  },
+  {
+    "folder_name": "test2-100steps",
+    "step_count": 101,
+    "duration_seconds": 65.808907585046,
+    "samples_raw": 6585,
+    "sample_rate_raw_hz": 100.05002501247093,
+    "sample_rate_model_hz": 50.0,
+    "steps_per_min": 92.08479858396913,
+    "source_csv": "testdata/test2-100steps/Raw Data.csv",
+    "report_file": "test2-100steps.html"
+  }
+]

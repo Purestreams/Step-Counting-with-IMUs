@@ -1,13 +1,24 @@
 import argparse
+import sys
 import time
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
-import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import requests
 
 from infer_nn_step_counter import NNStepCounter
 from step_counter import StepCounter
+
+
+NON_INTERACTIVE_BACKENDS = {
+    "agg",
+    "pdf",
+    "svg",
+    "ps",
+    "cairo",
+    "template",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,6 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "mps", "cuda"], help="NN inference device")
     parser.add_argument("--nn-prob-threshold", type=float, default=0.68, help="Event probability threshold for NN backend")
     parser.add_argument("--nn-context-seconds", type=float, default=4.0, help="Context length for NN streaming inference")
+    parser.add_argument("--max-points", type=int, default=6000, help="Max points kept in memory")
     return parser.parse_args()
 
 
@@ -40,14 +52,58 @@ def fetch_new(base_url: str, time_buf: str, acc_bufs: List[str], last_t: Optiona
     return response.json()
 
 
+def _extract_series(payload: dict, key: str) -> np.ndarray:
+    return np.asarray(payload["buffer"][key]["buffer"], dtype=float)
+
+
+def _find_first_key(keys: List[str], candidates: List[str]) -> Optional[str]:
+    keyset = {k.lower(): k for k in keys}
+    for candidate in candidates:
+        found = keyset.get(candidate.lower())
+        if found is not None:
+            return found
+    for key in keys:
+        low = key.lower()
+        if any(candidate in low for candidate in candidates):
+            return key
+    return None
+
+
+def autodetect_buffers_from_payload(payload: dict) -> Optional[Tuple[str, List[str]]]:
+    buffer = payload.get("buffer", {})
+    if not isinstance(buffer, dict) or len(buffer) == 0:
+        return None
+
+    keys = list(buffer.keys())
+    time_key = _find_first_key(keys, ["time", "timestamp", "t"])
+    x_key = _find_first_key(keys, ["ax", "accx", "acc_x", "x"])
+    y_key = _find_first_key(keys, ["ay", "accy", "acc_y", "y"])
+    z_key = _find_first_key(keys, ["az", "accz", "acc_z", "z"])
+
+    if time_key and x_key and y_key and z_key:
+        return time_key, [x_key, y_key, z_key]
+    return None
+
+
+def probe_and_autodetect_buffers(base_url: str) -> Optional[Tuple[str, List[str]]]:
+    try:
+        response = requests.get(base_url.rstrip("/") + "/get", timeout=2.0)
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException:
+        return None
+
+    return autodetect_buffers_from_payload(payload)
+
+
 def extract_chunk(payload: dict, time_buf: str, acc_bufs: List[str]) -> Tuple[np.ndarray, np.ndarray]:
-    t = np.asarray(payload["buffer"][time_buf]["buffer"], dtype=float)
+    t = _extract_series(payload, time_buf)
     if t.size == 0:
         return t, np.empty((0, 3), dtype=float)
 
-    ax = np.asarray(payload["buffer"][acc_bufs[0]]["buffer"], dtype=float)
-    ay = np.asarray(payload["buffer"][acc_bufs[1]]["buffer"], dtype=float)
-    az = np.asarray(payload["buffer"][acc_bufs[2]]["buffer"], dtype=float)
+    ax = _extract_series(payload, acc_bufs[0])
+    ay = _extract_series(payload, acc_bufs[1])
+    az = _extract_series(payload, acc_bufs[2])
 
     n = min(t.size, ax.size, ay.size, az.size)
     t = t[:n]
@@ -55,8 +111,31 @@ def extract_chunk(payload: dict, time_buf: str, acc_bufs: List[str]) -> Tuple[np
     return t, acc
 
 
+def _ensure_interactive_backend() -> Tuple[Any, str]:
+    backend = matplotlib.get_backend().lower()
+    if backend not in NON_INTERACTIVE_BACKENDS:
+        import matplotlib.pyplot as plt
+
+        return plt, matplotlib.get_backend()
+
+    preferred = ["MacOSX", "TkAgg"] if sys.platform == "darwin" else ["TkAgg", "QtAgg"]
+    for candidate in preferred:
+        try:
+            matplotlib.use(candidate, force=True)
+            import matplotlib.pyplot as plt
+
+            return plt, matplotlib.get_backend()
+        except Exception:
+            continue
+
+    import matplotlib.pyplot as plt
+
+    return plt, matplotlib.get_backend()
+
+
 def main() -> None:
     args = parse_args()
+    plt, selected_backend = _ensure_interactive_backend()
 
     if args.backend == "nn":
         if args.model_path is None:
@@ -100,11 +179,23 @@ def main() -> None:
     ax.set_ylabel("Acceleration magnitude (m/s^2)")
     ax.grid(True, alpha=0.3)
     ax.legend(loc="upper right")
+    if selected_backend.lower() in NON_INTERACTIVE_BACKENDS:
+        print(
+            "[WARN] Matplotlib is using a non-interactive backend "
+            f"('{selected_backend}'). GUI window may not appear. "
+            "Try running with MPLBACKEND=MacOSX (or TkAgg) in a local terminal."
+        )
+
+    last_error_print_time = 0.0
 
     while plt.fignum_exists(fig.number):
         try:
             payload = fetch_new(args.base_url, time_buf, acc_bufs, last_t)
-        except requests.RequestException:
+        except requests.RequestException as exc:
+            now = time.time()
+            if now - last_error_print_time > 1.0:
+                print(f"[WARN] fetch failed: {type(exc).__name__}: {exc}")
+                last_error_print_time = now
             time.sleep(args.poll_interval)
             continue
 
@@ -122,7 +213,29 @@ def main() -> None:
             time.sleep(args.poll_interval)
             continue
 
-        t, acc = extract_chunk(payload, time_buf, acc_bufs)
+        try:
+            t, acc = extract_chunk(payload, time_buf, acc_bufs)
+        except (KeyError, TypeError, ValueError) as exc:
+            detected = autodetect_buffers_from_payload(payload)
+            if detected is None:
+                detected = probe_and_autodetect_buffers(args.base_url)
+
+            if detected is not None:
+                time_buf, acc_bufs = detected
+                print(f"[INFO] Auto-detected buffers: time={time_buf}, acc={acc_bufs}")
+            else:
+                now = time.time()
+                if now - last_error_print_time > 1.0:
+                    print(
+                        "[WARN] buffer parse failed: "
+                        f"{type(exc).__name__}: {exc}. "
+                        f"Configured time='{time_buf}', acc={acc_bufs}"
+                    )
+                    last_error_print_time = now
+            time.sleep(args.poll_interval)
+            plt.pause(0.001)
+            continue
+
         if t.size == 0:
             time.sleep(args.poll_interval)
             plt.pause(0.001)
@@ -140,6 +253,13 @@ def main() -> None:
         amag_hist = np.concatenate([amag_hist, amag])
         if new_step_ts.size > 0:
             step_hist = np.concatenate([step_hist, new_step_ts])
+
+        if t_hist.size > args.max_points:
+            t_hist = t_hist[-args.max_points :]
+            amag_hist = amag_hist[-args.max_points :]
+
+        if step_hist.size > args.max_points:
+            step_hist = step_hist[-args.max_points :]
 
         last_t = float(t[-1])
 

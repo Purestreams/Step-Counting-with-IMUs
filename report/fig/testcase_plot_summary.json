@@ -1,0 +1,26 @@
+[
+  {
+    "case": "test1-84step",
+    "figure": "report/fig/test1-84step_plot.png",
+    "predicted_steps": 82,
+    "ground_truth_steps": 84,
+    "abs_error": 2,
+    "rel_error_percent": 2.380952380952381,
+    "duration_seconds": 60.957662750021996,
+    "samples": 6100,
+    "sample_rate_hz": 100.0500250125065,
+    "detected_step_events": 82
+  },
+  {
+    "case": "test2-100steps",
+    "figure": "report/fig/test2-100steps_plot.png",
+    "predicted_steps": 101,
+    "ground_truth_steps": 100,
+    "abs_error": 1,
+    "rel_error_percent": 1.0,
+    "duration_seconds": 65.808907585046,
+    "samples": 6585,
+    "sample_rate_hz": 100.05002501247093,
+    "detected_step_events": 101
+  }
+]

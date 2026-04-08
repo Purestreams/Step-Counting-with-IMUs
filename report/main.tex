@@ -1,0 +1,145 @@
+\documentclass[sigconf, anonymous=false, 10pt]{acmart} 
+
+% =========== Packages ============
+\usepackage{xcolor}
+% \usepackage[table]{xcolor}
+% \usepackage{colortbl}
+% \usepackage{url}
+\usepackage{xurl}
+\usepackage{booktabs}
+\usepackage[ruled]{algorithm2e}
+\usepackage{algpseudocode}
+\usepackage{enumerate}
+\usepackage[english]{babel}
+\usepackage{blindtext}
+\usepackage[caption=false,font=footnotesize,subrefformat=parens]{subfig}
+\usepackage{amsmath}
+\let\Bbbk\relax
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{float}
+\usepackage{flafter}
+\usepackage{comment}
+\usepackage[skip=12pt]{caption}
+\usepackage{graphicx}
+
+% =========== Spacing Tools ============
+% These removes excess margins around figures. No more manual adjustment for every figure.
+% \setlength{\floatsep}{0.5mm}
+% \setlength{\dblfloatsep}{0.5mm}
+% \setlength{\textfloatsep}{3.0mm}
+% \setlength{\dbltextfloatsep}{3.0mm}
+% \setlength{\intextsep}{0.5mm}
+
+% \abovecaptionskip 10.0pt % mm % space above caption (10.0pt)
+% \belowcaptionskip 0.0pt% space below caption (0.0pt)
+% \renewcommand{\baselinestretch}{0.99} % line space
+
+% =========== Definitions & Declarations ============
+\def\fig{Fig.\xspace}
+\def\eqn{Eq.\xspace}
+\def\sec{Sec.\xspace}
+\def\tab{Tab.\xspace}
+
+\def\ie{{\textit{i.e.}\xspace}} 
+\def\eg{{\textit{e.g.}\xspace}}
+\def\aka{{\textit{a.k.a.}\xspace}} 
+\def\etal{{\textit{et al.}\xspace}}
+
+\newcommand{\head}[1]{{\noindent \textbf{#1:}}}
+\newcommand{\term}[1]{{\textit{#1}}}
+
+\graphicspath{{./figures/}}
+\graphicspath{{./pdf/}}
+\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+% =========== Editing Tools ============
+\ifodd 0
+\newcommand{\rev}[1]{{\color{blue}#1}} %revise of the text
+\newcommand{\com}[1]{\textbf{\color{red}(COMMENT: #1)}} %comment of the text
+\newcommand{\todo}[1]{\textbf{{\color{orange}(TODO: #1)}}}
+\else
+\newcommand{\rev}[1]{#1}
+\newcommand{\com}[1]{}
+\newcommand{\todo}[1]{}
+\fi
+
+% =========== Meta Info ============
+\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference info
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\setcopyright{usgov}
+%\setcopyright{usgovmixed}
+%\setcopyright{cagov}
+%\setcopyright{cagovmixed}
+
+\settopmatter{printacmref=false, printccs=false, printfolios=false}
+
+% DOI
+\acmDOI{}
+
+% ISBN
+\acmISBN{}
+
+%Conference
+% \acmConference[Submitted for review to ACM MobiCom]{}
+% \acmYear{2023}
+% \copyrightyear{}
+% \acmSubmissionID{\#xxx, 12+X pages}
+
+%% {} with no args suppresses printing of the price
+\acmPrice{}
+
+\def\sysname{\textsc{GPR}\xspace}
+% =========== Body ============
+\begin{document}
+
+\title[\sysname]{Step Counting with Smartphone IMUs}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% YOUR NAME %%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Zhu Yecheng}
+\email{u3606137@connect.hku.hk}
+\affiliation{%
+    \institution{The University of Hong Kong}
+    \city{Hong Kong SAR}
+    \country{China}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% The default list of authors is too long for headers}
+\renewcommand{\shortauthors}{\sysname}
+
+% \begin{abstract}
+
+% \end{abstract}
+
+\maketitle
+\input{body}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+% \input{appendix}
+
+\end{document}
+
+
+% Notes: 
+% 1. Put final pdf figures under ./odf folder, and other editable/original figures in any format under ./fig folder. 
+% 2. Use labels with prefix:
+%    - sec: for sections (including subsections), e.g., \label{sec:intro}
+%    - fig: for figures (including subfigures), e.g., \label{fig:architecture}
+%    - tab: for tables, e.g, \label{tab:summary}
+%    - eqn: for equations, e.g, \label{eqn:csi}
+% 3. Reference equations with \eqref
+% 4. Don't separate sections into different files (except for appendices, if any)
+% 5. When changing a template (e.g., to submit to a different venue), create a different main.tex file like this one, and keep the entire project the same.
