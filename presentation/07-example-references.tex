@@ -1,8 +1,8 @@
 \section{Training}
 
 \begin{frame}
-    \frametitle{Training Objective and Hyperparameters}
-    \small
+    \frametitle{Training Objective and Early Stopping}
+    \footnotesize
     \begin{columns}[t]
         \begin{column}{0.50\textwidth}
             \begin{block}{Loss}
@@ -16,18 +16,24 @@
             \end{block}
         \end{column}
         \begin{column}{0.45\textwidth}
-            \begin{itemize}
-                \item Optimizer: AdamW
-                \item Learning rate: $10^{-3}$
-                \item Weight decay: $10^{-4}$
-                \item Batch size: 256
-                \item Early stopping patience: 6 epochs
-                \item Best epoch: 4
-            \end{itemize}
+            \begin{table}
+                \centering
+                \begin{tabular}{lr}
+                    \toprule
+                    Setting & Value \\
+                    \midrule
+                    Optimizer & AdamW \\
+                    Learning rate & $10^{-3}$ \\
+                    Batch size & 256 \\
+                    Patience & 6 epochs \\
+                    Best epoch & 4 \\
+                    \bottomrule
+                \end{tabular}
+            \end{table}
         \end{column}
     \end{columns}
 
-    \begin{exampleblock}{Checkpoint contents}
-        The saved model stores network weights, feature normalization statistics, sample rate, window size, split metadata, and seed.
+    \begin{exampleblock}{Training history signal}
+        Validation loss is almost flat from epoch 1 to epoch 4 (0.3736 $\rightarrow$ 0.3732), then degrades to 0.4052 by epoch 10 while train loss keeps falling. Early stopping prevents the count head from overfitting the training windows.
     \end{exampleblock}
 \end{frame}

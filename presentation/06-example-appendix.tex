@@ -32,23 +32,25 @@
 \end{frame}
 
 \begin{frame}
-	\frametitle{Models Compared in the Report}
+	\frametitle{TCN vs. ACF: Report Comparison}
 	\scriptsize
 	\begin{table}
 		\centering
-		\begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.33\textwidth}}
+		\begin{tabular}{p{0.24\textwidth}p{0.28\textwidth}p{0.30\textwidth}}
 			\toprule
-			Method & Strengths & Observed limitations \\
+			Criterion & Causal TCN & ACF baseline \\
 			\midrule
-			ACF baseline & No training, lightweight, interpretable cadence estimate & Needs quasi-periodic walking; weaker at starts/stops and irregular arm motion \\
-			LSTM StepNet & Learns temporal patterns and gait rhythm & Sequential recurrence is slower to train/infer; no final checkpoint retained \\
-			Causal TCN StepNet & Parallel training, fixed streaming context, event + count heads & Needs labeled data and threshold calibration \\
+			Core idea & Learned temporal event/count model & Classical periodicity and peak picking \\
+			Self-session MAE & 1.5 steps & 3.5 steps \\
+			Self-session MAPE & 1.69\% & 3.88\% \\
+			Training cost & $>$30 min CPU / $\sim$8 min GPU & None \\
+			Best use case & Accuracy-focused deployment & Lightweight fallback or fast setup \\
 			\bottomrule
 		\end{tabular}
 	\end{table}
 
 	\begin{block}{Final choice}
-		TCN was selected for the accuracy target; ACF remains a strong low-cost fallback. Final TCN test count MAE: 0.484 steps/window.
+		The report keeps ACF as the deployable baseline and selects TCN when labeled data and compute are available. Final TCN test count MAE: 0.484 steps/window.
 	\end{block}
 \end{frame}
 

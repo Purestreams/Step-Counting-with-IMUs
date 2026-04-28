@@ -41,3 +41,30 @@
         \end{column}
     \end{columns}
 \end{frame}
+
+\begin{frame}
+    \frametitle{Generalization Analysis}
+    \scriptsize
+    \begin{columns}[t]
+        \begin{column}{0.58\textwidth}
+            \includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{../report/fig/calibration_subset_abs_error.png}
+        \end{column}
+        \begin{column}{0.38\textwidth}
+            \centering
+            \begin{tabular}{lr}
+                \toprule
+                Modality & Mean abs. err. \\
+                \midrule
+                Hip 100 Hz & 22.00 \\
+                Hip 25 Hz & 4.67 \\
+                Wrist 100 Hz & 7.00 \\
+                Wrist 25 Hz & 22.75 \\
+                \bottomrule
+            \end{tabular}
+
+            \raggedright
+            \vspace{0.08cm}
+            \textbf{Report interpretation:} subset MAE is 15.6 steps over 10 samples. Wrist 25 Hz is hardest; Hip 100 Hz may suffer from downsampling artifacts.
+        \end{column}
+    \end{columns}
+\end{frame}
