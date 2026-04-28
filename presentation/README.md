@@ -6,7 +6,7 @@ This folder contains the Beamer slide deck for the IMU step-counting project.
 
 - Main source: `template.tex`
 - Generated PDF: `template.pdf`
-- Slide count: 11 pages
+- Slide count: 12 pages
 
 ## Build With WSL
 
@@ -25,7 +25,7 @@ The command runs `pdflatex` twice so the table of contents and navigation metada
 - `03-example-motivation.tex`: problem definition and interface constraints
 - `04-example-theory.tex`: dataset and ground truth
 - `05-example-conclusion.tex`: preprocessing and windowing pipeline
-- `06-example-appendix.tex`: Causal TCN StepNet architecture and model comparison
+- `06-example-appendix.tex`: Causal TCN StepNet architecture, model comparison, and ACF baseline
 - `07-example-references.tex`: training objective and hyperparameters
 - `08-example-appendix-figures.tex`: offline and real-time inference
 - `09-example-appendix-terms.tex`: evaluation results

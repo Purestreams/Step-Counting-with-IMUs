@@ -2,7 +2,7 @@
 \beamer@sectionintoc {2}{Data}{4}{0}{2}
 \beamer@sectionintoc {3}{Pipeline}{5}{0}{3}
 \beamer@sectionintoc {4}{Model}{6}{0}{4}
-\beamer@sectionintoc {5}{Training}{8}{0}{5}
-\beamer@sectionintoc {6}{Inference}{9}{0}{6}
-\beamer@sectionintoc {7}{Evaluation}{10}{0}{7}
-\beamer@sectionintoc {8}{Deployment}{11}{0}{8}
+\beamer@sectionintoc {5}{Training}{9}{0}{5}
+\beamer@sectionintoc {6}{Inference}{10}{0}{6}
+\beamer@sectionintoc {7}{Evaluation}{11}{0}{7}
+\beamer@sectionintoc {8}{Deployment}{12}{0}{8}

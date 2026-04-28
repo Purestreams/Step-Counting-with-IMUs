@@ -2,8 +2,10 @@
 
 \begin{frame}
     \frametitle{Experimental Results}
+    \footnotesize
     \begin{columns}[t]
-        \begin{column}{0.50\textwidth}
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Neural model split}
             \begin{table}
                 \centering
                 \begin{tabular}{lr}
@@ -18,21 +20,24 @@
                     \bottomrule
                 \end{tabular}
             \end{table}
+            \end{block}
+            \scriptsize Test event loss is lower than validation loss, suggesting the test split may contain easier motion sequences.
         \end{column}
-        \begin{column}{0.46\textwidth}
-            \begin{block}{Own recordings}
-                \begin{tabular}{lrrr}
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Self-recorded sessions}
+                \scriptsize
+                \begin{tabular}{lrrp{0.17\textwidth}}
                     \toprule
-                    Trial & GT & Pred. & Error \\
+                    Method & MAE & MAPE & Training \\
                     \midrule
-                    test1 & 84 & 82 & -2 \\
-                    test2 & 100 & 101 & +1 \\
+                    TCN & 1.5 & 1.69\% & $>$30 min CPU; $\sim$8 min GPU \\
+                    ACF & 3.5 & 3.88\% & none \\
                     \bottomrule
                 \end{tabular}
             \end{block}
-            \vspace{0.2cm}
-            \small
-            The dedicated model-comparison slide explains why the causal TCN was selected over the heuristic and LSTM alternatives.
+            \begin{alertblock}{Stress-test subset}
+                Deterministic subset MAE is 15.6 steps; wrist 25 Hz and hip 100 Hz contribute most error.
+            \end{alertblock}
         \end{column}
     \end{columns}
 \end{frame}

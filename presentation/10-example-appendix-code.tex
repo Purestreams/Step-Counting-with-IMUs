@@ -18,8 +18,8 @@
             \begin{exampleblock}{Key lessons}
                 \begin{itemize}
                     \item Causality matters for live feedback
-                    \item Magnitude feature improves orientation robustness
-                    \item Participant split is critical for realistic evaluation
+                    \item ACF is useful for lightweight fallback
+                    \item Participant split exposes generalization gaps
                     \item Threshold and minimum interval convert probabilities into stable events
                 \end{itemize}
             \end{exampleblock}
@@ -27,6 +27,6 @@
     \end{columns}
 
     \begin{alertblock}{Limitations and next steps}
-        More validation is needed for non-walking motions, phone transitions, and device-specific acceleration scaling.
+        TCN allows up to $\sim$180 steps/min with a 0.33 s interval, while ACF caps cadence at $\sim$168 steps/min. Future work: adaptive thresholds, placement adaptation, and hybrid ACF+TCN fallback.
     \end{alertblock}
 \end{frame}

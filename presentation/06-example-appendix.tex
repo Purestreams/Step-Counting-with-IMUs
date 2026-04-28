@@ -32,7 +32,7 @@
 \end{frame}
 
 \begin{frame}
-	\frametitle{Model Comparison}
+	\frametitle{Models Compared in the Report}
 	\scriptsize
 	\begin{table}
 		\centering
@@ -40,14 +40,43 @@
 			\toprule
 			Method & Strengths & Observed limitations \\
 			\midrule
-			Peak heuristic & Simple, fast, interpretable; no training required & Sensitive to thresholds and sensor placement; subset MAE 15.6 steps \\
+			ACF baseline & No training, lightweight, interpretable cadence estimate & Needs quasi-periodic walking; weaker at starts/stops and irregular arm motion \\
 			LSTM StepNet & Learns temporal patterns and gait rhythm & Sequential recurrence is slower to train/infer; no final checkpoint retained \\
-			Causal TCN StepNet & Parallel training, fixed streaming context, event + count heads & Needs labeled data and probability threshold calibration \\
+			Causal TCN StepNet & Parallel training, fixed streaming context, event + count heads & Needs labeled data and threshold calibration \\
 			\bottomrule
 		\end{tabular}
 	\end{table}
 
 	\begin{block}{Final choice}
-		TCN was selected because causal convolutions preserve live behavior while training efficiently on 649,794 windows. Final test count MAE: 0.484 steps/window.
+		TCN was selected for the accuracy target; ACF remains a strong low-cost fallback. Final TCN test count MAE: 0.484 steps/window.
 	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{ACF Baseline: Classical Signal Pipeline}
+	\footnotesize
+	\begin{columns}[t]
+		\begin{column}{0.50\textwidth}
+			\begin{block}{Processing steps}
+				\begin{enumerate}
+					\item Compute $a_{mag}(t)$ from tri-axial acceleration
+					\item Remove slow baseline drift and smooth residual motion
+					\item Select strongest autocorrelation peak in 1.2--2.8 Hz walking band
+					\item Accept local maxima above adaptive threshold and separated by $\rho P$ samples
+				\end{enumerate}
+			\end{block}
+		\end{column}
+		\begin{column}{0.46\textwidth}
+			\begin{exampleblock}{When it works}
+				Regular walking creates a stable autocorrelation peak, so period and peak-distance estimates are reliable.
+			\end{exampleblock}
+			\begin{alertblock}{Failure modes}
+				Start/stop transitions, irregular arm swing, and non-walking periodic motion weaken stationarity.
+			\end{alertblock}
+		\end{column}
+	\end{columns}
+
+	\begin{center}
+		\scriptsize Self-recorded ACF results: test1 $84\rightarrow88$, test2 $100\rightarrow97$; MAE 3.5 steps, MAPE 3.88\%.
+	\end{center}
 \end{frame}
