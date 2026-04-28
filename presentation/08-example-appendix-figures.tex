@@ -1,0 +1,32 @@
+\section{Inference}
+
+\begin{frame}
+    \frametitle{Offline and Real-Time Inference}
+    \small
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Offline path}
+                \begin{itemize}
+                    \item Validate time and acceleration shape
+                    \item Sort timestamps and remove duplicates
+                    \item Normalize start time to zero
+                    \item Resample to model rate and call the same update logic
+                \end{itemize}
+            \end{block}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Streaming path}
+                \begin{itemize}
+                    \item Keep a 4 s context buffer
+                    \item Run causal TCN on context + new chunk
+                    \item Detect local maxima above probability threshold 0.68
+                    \item Enforce minimum step interval of 0.33 s
+                \end{itemize}
+            \end{block}
+        \end{column}
+    \end{columns}
+
+    \begin{alertblock}{Boundary handling}
+        Previous probabilities and timestamps are retained, so peaks crossing chunk boundaries are counted exactly once.
+    \end{alertblock}
+\end{frame}

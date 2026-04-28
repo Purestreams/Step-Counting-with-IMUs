@@ -1,0 +1,33 @@
+\section{Training}
+
+\begin{frame}
+    \frametitle{Training Objective and Hyperparameters}
+    \small
+    \begin{columns}[t]
+        \begin{column}{0.50\textwidth}
+            \begin{block}{Loss}
+                \[
+                    \begin{aligned}
+                        L ={}& L_{BCE}(y_{event}, \hat{y}_{event}) \\
+                              & + 0.15 L_{MSE}(y_{count}, \hat{y}_{count})
+                    \end{aligned}
+                \]
+                Positive event samples use weight 3.0 to counter sparse labels.
+            \end{block}
+        \end{column}
+        \begin{column}{0.45\textwidth}
+            \begin{itemize}
+                \item Optimizer: AdamW
+                \item Learning rate: $10^{-3}$
+                \item Weight decay: $10^{-4}$
+                \item Batch size: 256
+                \item Early stopping patience: 6 epochs
+                \item Best epoch: 4
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \begin{exampleblock}{Checkpoint contents}
+        The saved model stores network weights, feature normalization statistics, sample rate, window size, split metadata, and seed.
+    \end{exampleblock}
+\end{frame}

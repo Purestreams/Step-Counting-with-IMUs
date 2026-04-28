@@ -1,0 +1,32 @@
+\section{Deployment}
+
+\begin{frame}
+    \frametitle{Real-Time Demo and Takeaways}
+    \footnotesize
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \begin{block}{phyphox demo}
+                \begin{itemize}
+                    \item Polls Remote Access API every 0.05 s
+                    \item Auto-detects time and acceleration buffers
+                    \item Displays acceleration curves, detected steps, and cumulative count
+                    \item Web dashboard available through Flask and Chart.js
+                \end{itemize}
+            \end{block}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{exampleblock}{Key lessons}
+                \begin{itemize}
+                    \item Causality matters for live feedback
+                    \item Magnitude feature improves orientation robustness
+                    \item Participant split is critical for realistic evaluation
+                    \item Threshold and minimum interval convert probabilities into stable events
+                \end{itemize}
+            \end{exampleblock}
+        \end{column}
+    \end{columns}
+
+    \begin{alertblock}{Limitations and next steps}
+        More validation is needed for non-walking motions, phone transitions, and device-specific acceleration scaling.
+    \end{alertblock}
+\end{frame}

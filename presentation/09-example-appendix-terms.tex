@@ -1,0 +1,38 @@
+\section{Evaluation}
+
+\begin{frame}
+    \frametitle{Experimental Results}
+    \begin{columns}[t]
+        \begin{column}{0.50\textwidth}
+            \begin{table}
+                \centering
+                \begin{tabular}{lr}
+                    \toprule
+                    Metric & Value \\
+                    \midrule
+                    Best validation loss & 0.3732 \\
+                    Test loss & 0.4562 \\
+                    Test event loss & 0.3364 \\
+                    Test count loss & 0.7992 \\
+                    Test count MAE & 0.4840 \\
+                    \bottomrule
+                \end{tabular}
+            \end{table}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \begin{block}{Own recordings}
+                \begin{tabular}{lrrr}
+                    \toprule
+                    Trial & GT & Pred. & Error \\
+                    \midrule
+                    test1 & 84 & 82 & -2 \\
+                    test2 & 100 & 101 & +1 \\
+                    \bottomrule
+                \end{tabular}
+            \end{block}
+            \vspace{0.2cm}
+            \small
+            The dedicated model-comparison slide explains why the causal TCN was selected over the heuristic and LSTM alternatives.
+        \end{column}
+    \end{columns}
+\end{frame}

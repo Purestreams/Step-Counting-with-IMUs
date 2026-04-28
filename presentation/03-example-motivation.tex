@@ -1,0 +1,33 @@
+\section{Problem}
+
+\begin{frame}
+    \frametitle{Goal and Constraints}
+    \small
+    \begin{block}{Task}
+        Count walking steps from IMU recordings with one interface for offline evaluation and real-time updates.
+    \end{block}
+
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \textbf{Inputs}
+            \begin{itemize}
+                \item Required: time and 3-axis acceleration
+                \item Optional: gyro and magnetometer
+                \item Irregular raw sample rates handled by resampling
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Outputs}
+            \begin{itemize}
+                \item Offline: step count and timestamps
+                \item Streaming: new steps and cumulative total
+                \item Diagnostics for threshold and model state
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.1cm}
+    \begin{alertblock}{Design challenge}
+        Detect sparse step events while staying robust to phone orientation, gait speed, sensor placement, and chunk boundaries.
+    \end{alertblock}
+\end{frame}

@@ -1,0 +1,33 @@
+\section{Data}
+
+\begin{frame}
+	\frametitle{Dataset and Ground Truth}
+	\begin{columns}[t]
+		\begin{column}{0.52\textwidth}
+			\begin{itemize}
+				\item Training data: OxWalk Dec 2022 IMU recordings
+				\item 39 participants used in the final retrain
+				\item Four modalities: hip/wrist at 100 Hz and 25 Hz
+				\item Participant-level split prevents the same person appearing in train and test
+			\end{itemize}
+		\end{column}
+		\begin{column}{0.44\textwidth}
+			\begin{table}
+				\centering
+				\begin{tabular}{lrr}
+					\toprule
+					Split & Participants & Windows \\
+					\midrule
+					Train & 23 & 649,794 \\
+					Val & 8 & 210,000 \\
+					Test & 8 & 230,164 \\
+					\bottomrule
+				\end{tabular}
+			\end{table}
+		\end{column}
+	\end{columns}
+
+	\begin{exampleblock}{Label construction}
+		Binary step annotations are resampled to 50 Hz, then widened with a Gaussian label of $\sigma=0.06$ s for event learning.
+	\end{exampleblock}
+\end{frame}

@@ -1,0 +1,53 @@
+\section{Model}
+
+\begin{frame}
+	\frametitle{Causal TCN StepNet Architecture}
+	\begin{columns}[t]
+		\begin{column}{0.48\textwidth}
+			\begin{block}{Backbone}
+				\begin{itemize}
+					\item Input projection: 4 channels $\rightarrow$ 64 channels
+					\item 4 causal residual convolution blocks
+					\item Kernel size 5, dilations $1,2,4,8$
+					\item BatchNorm, GELU, dropout 0.15
+				\end{itemize}
+			\end{block}
+		\end{column}
+		\begin{column}{0.48\textwidth}
+			\begin{block}{Two heads}
+				\begin{itemize}
+					\item Event head: per-sample step probability
+					\item Count head: expected number of steps in the window
+					\item Causal convolutions support streaming inference
+				\end{itemize}
+			\end{block}
+		\end{column}
+	\end{columns}
+
+	\vspace{0.2cm}
+	\begin{center}
+		\small
+		Acc window $\rightarrow$ feature normalization $\rightarrow$ causal TCN $\rightarrow$ event logits + count estimate
+	\end{center}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Model Comparison}
+	\scriptsize
+	\begin{table}
+		\centering
+		\begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.33\textwidth}}
+			\toprule
+			Method & Strengths & Observed limitations \\
+			\midrule
+			Peak heuristic & Simple, fast, interpretable; no training required & Sensitive to thresholds and sensor placement; subset MAE 15.6 steps \\
+			LSTM StepNet & Learns temporal patterns and gait rhythm & Sequential recurrence is slower to train/infer; no final checkpoint retained \\
+			Causal TCN StepNet & Parallel training, fixed streaming context, event + count heads & Needs labeled data and probability threshold calibration \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	\begin{block}{Final choice}
+		TCN was selected because causal convolutions preserve live behavior while training efficiently on 649,794 windows. Final test count MAE: 0.484 steps/window.
+	\end{block}
+\end{frame}

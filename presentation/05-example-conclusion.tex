@@ -1,0 +1,19 @@
+\section{Pipeline}
+
+\begin{frame}
+	\frametitle{Preprocessing and Windowing}
+	\begin{enumerate}
+		\item Parse timestamped accelerometer CSV files and convert timestamps to seconds.
+		\item Resample every recording to a common 50 Hz timeline with linear interpolation.
+		\item Build an orientation-aware feature vector:
+		\[
+			x_t = [a_x(t), a_y(t), a_z(t), \|a(t)\|_2]
+		\]
+		\item Slice into 4 s windows with 0.5 s stride, giving 200 samples per window.
+		\item Standardize features using train-set mean and standard deviation saved in the checkpoint.
+	\end{enumerate}
+
+	\begin{block}{Why include acceleration magnitude?}
+		The raw axes preserve motion direction, while $\|a\|_2$ gives a stable cue when phone orientation changes.
+	\end{block}
+\end{frame}
