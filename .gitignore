@@ -212,3 +212,4 @@ report.md
 testdata/*
 .DS_Store
 final.7z
+newsubmission/models/phyphox_data_packed.pt
