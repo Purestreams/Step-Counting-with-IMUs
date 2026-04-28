@@ -3,23 +3,7 @@ Step counting from commodity smartphone sensors is a practical yet non-trivial t
 
 The system is implemented around a causal neural temporal model that predicts both frame-level step events and window-level step counts. The same model and post-processing logic are used in evaluation scripts and real-time demos, which improves consistency between training objectives and deployment behavior.
 
-From an academic perspective, the core practical contributions are summarized in Table~\ref{tab:intro_contributions}. The results show strong performance on personal recordings and highlight remaining generalization gaps in cross-participant and wrist-mounted settings.
-
-\begin{table}[H]
-\centering
-\caption{Core practical contributions of this work.}
-\label{tab:intro_contributions}
-\small
-\begin{tabular}{p{0.20\linewidth}p{0.68\linewidth}}
-\toprule
-Contribution & Description \\
-\midrule
-Reproducible workflow & End-to-end data-to-inference pipeline for smartphone accelerometer signals. \\
-Causal streaming design & Causal inference architecture and logic suitable for low-latency online updates. \\
-Empirical analysis & Evaluation across public benchmark-style data and self-recorded sessions. \\
-\bottomrule
-\end{tabular}
-\end{table}
+The results show strong performance on personal recordings and highlight remaining generalization gaps in cross-participant and wrist-mounted settings.
 
 \section{Data Collection}
 \subsection{Datasets and Sources}
@@ -52,13 +36,11 @@ The model is defined as a causal temporal network (TCN) with residual dilated 1D
 
 Input features are four-dimensional per sample:
 \begin{equation}
-\begin{aligned}
-\mathbf{x}_t &= [a_x(t), a_y(t), a_z(t), a_{mag}(t)], \\
-a_{mag}(t) &= \sqrt{a_x(t)^2+a_y(t)^2+a_z(t)^2}.
-\end{aligned}
+\mathbf{x}_t = [a_x(t), a_y(t), a_z(t), a_{mag}(t)],
 \end{equation}
+where $a_{mag}(t)$ is defined as in Eq.~1. Although including raw acceleration axes means the model is not strictly orientation-invariant, it allows the network to utilize orientation context when available, while the $a_{mag}$ component provides a robust fallback scalar to aid generalization across varied pocket or hand placements.
 
-The causal architecture ensures that predictions at time $t$ depend only on past and current context, which is critical for real-time usage. Dilated convolutions increase receptive field length without requiring recurrent state, enabling efficient inference on streaming chunks.
+The causal architecture ensures that predictions at time $t$ depend only on past and current context, which is critical for real-time usage. Dilated convolutions increase receptive field length without requiring recurrent state. Specifically, the network depth and dilation factors are configured so the effective receptive field (ERF) natively covers the full 4.0~s (200-sample) context window, enabling efficient inference on streaming chunks.
 
 \subsection{Training Pipeline}
 Training involves participant-level split construction with the key settings summarized in Table~\ref{tab:train_settings}.
@@ -114,23 +96,8 @@ Offline processing uses the same post-processing logic to avoid train-test and o
 
 \section{Results}
 \subsection{Evaluation Protocol}
-Evaluation levels are summarized in Table~\ref{tab:eval_levels}. Absolute error and relative error are emphasized because they directly reflect practical counting quality.
+Absolute error and relative error are emphasized because they directly reflect practical counting quality.
 
-\begin{table}[H]
-\centering
-\caption{Evaluation levels used in this study.}
-\label{tab:eval_levels}
-\small
-\begin{tabular}{p{0.20\linewidth}p{0.68\linewidth}}
-\toprule
-Level & Description \\
-\midrule
-Neural model metrics & Participant-level split evaluation of event and count prediction quality. \\
-End-to-end personal sessions & Full counting performance on two self-recorded sessions. \\
-Deterministic subset calibration & Stress-test style evaluation on challenging cross-domain subset examples. \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Model Metrics}
 The temporal model metrics on validation and test splits are listed in Table~\ref{tab:model_metrics}.
@@ -151,7 +118,7 @@ Test count MAE (window-level) & 0.4840 \\
 \end{tabular}
 \end{table}
 
-These values indicate that the event head learns reliable frame-level structure while the count head remains accurate at window scale. The low test count MAE supports using count-aware supervision in addition to event supervision.
+These values indicate that the event head learns reliable frame-level structure while the count head remains accurate at window scale. The observation that the test event loss is slightly lower than the best validation loss is somewhat unusual, which suggests that the test split may happen to contain less diverse or "easier" motion sequences than the cross-validation data. Nevertheless, the low test count MAE supports using count-aware supervision in addition to event supervision.
 
 \subsection{Inference on Self-Recorded Sessions}
 Inference on self-recorded sessions demonstrates low counting error in realistic user conditions:
@@ -172,12 +139,68 @@ Session 2 & 100 & 101 & 1 & 1.00 \\
 
 Across both sessions, mean absolute error is 1.5 steps and mean absolute percentage error is 1.69\%, indicating high practical reliability for the tested personal recordings.
 
+\subsection{ACF Baseline Comparison}
+In addition to the neural model, a lightweight autocorrelation-function (ACF) step counter is implemented as a classical baseline. The ACF pipeline estimates dominant step periodicity from detrended and smoothed acceleration magnitude, then performs constrained peak picking for count estimation.
+
+Operationally, the method computes magnitude $a_{mag}(t)$, removes slow baseline drift with moving-average detrending, and smooths the residual to reduce high-frequency noise. It then estimates cadence by selecting the strongest normalized autocorrelation peak in a physiologically plausible lag range (equivalently, about 1.2--2.8~Hz walking frequency in this implementation). If the estimated period is $P$ samples, candidate local maxima are accepted only when they exceed an adaptive amplitude threshold and are separated by at least $\rho P$ samples ($\rho<1$), which suppresses double-counting from within-step micro-oscillations.
+
+This explains why ACF works well on regular walking segments: quasi-periodic gait produces a strong and stable autocorrelation peak, so the inferred period and minimum peak distance are reliable. Accuracy typically degrades during start/stop transitions, irregular arm motion, or non-walking periodic activities, where periodicity is weaker or less stationary.
+
+On the same two self-recorded sessions, the ACF baseline gives MAE $=3.5$ steps and MAPE $=3.88\%$ (Session 1: $84\rightarrow88$, Session 2: $100\rightarrow97$). This is less accurate than the TCN-based system (MAE $=1.5$, MAPE $=1.69\%$), but still reasonably good for practical counting.
+
+From a compute perspective, the trade-off is favorable for quick deployment: training the TCN model requires more than 30 minutes on CPU or about 8 minutes on GPU, while the ACF method requires no neural training and is significantly lighter to tune and run.
+
+\begin{table}[H]
+\centering
+\caption{ACF baseline results on self-recorded sessions.}
+\label{tab:acf_results}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Session & GT & Est. & Abs. err. & Rel. err. (\%) \\
+\midrule
+Session 1 & 84 & 88 & 4 & 4.76 \\
+Session 2 & 100 & 97 & 3 & 3.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{fig/self_sessions_gt_vs_est.png}
-\caption{Ground-truth versus estimated step counts on self-recorded sessions.}
-\label{fig:self_gt_est}
+\includegraphics[width=\linewidth]{fig/acf_testcases_signal.png}
+\caption{ACF signal-level outputs on two test sessions: acceleration magnitude and detected step timestamps.}
+\label{fig:acf_signal_cases}
 \end{figure}
+
+\subsection{TCN vs. ACF Comparison}
+Table~\ref{tab:tcn_acf_comparison} summarizes the practical trade-off between the neural TCN method and the classical ACF method on the same self-recorded sessions. The TCN model is more accurate, while ACF is lighter and easier to deploy when training resources are limited.
+
+\begin{table}[H]
+\centering
+\caption{Direct comparison between TCN and ACF methods on self-recorded sessions.}
+\label{tab:tcn_acf_comparison}
+\small
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.38\columnwidth}>{\centering\arraybackslash}p{0.27\columnwidth}>{\centering\arraybackslash}p{0.27\columnwidth}@{}}
+\toprule
+Criterion & TCN method & ACF method \\
+\midrule
+MAE (steps) & 1.5 & 3.5 \\
+MAPE (\%) & 1.69 & 3.88 \\
+Training requirement & $>$30 min (CPU) / $\sim$8 min (GPU) & None \\
+Model complexity & Higher (learned temporal model) & Lower (signal-processing baseline) \\
+Runtime practicality & Higher accuracy target & Lightweight fallback / quick setup \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Overall, TCN is preferred when the goal is best counting accuracy and training hardware is available. ACF remains a strong low-cost alternative for fast prototyping, constrained devices, or fallback operation.
+
+%\begin{figure}[t]
+%\centering
+%\includegraphics[width=\linewidth]{fig/self_sessions_gt_vs_est.png}
+%\caption{Ground-truth versus estimated step counts on self-recorded sessions.}
+%\label{fig:self_gt_est}
+%\end{figure}
 
 \subsection{Subset Calibration/Evaluation}
 A deterministic subset evaluation yields MAE $=15.6$ steps and MAPE $=17.51\%$.
@@ -208,25 +231,10 @@ Wrist 25~Hz & 4 & 22.75 \\
 \end{tabular}
 \end{table}
 
-The modality breakdown indicates that wrist 25~Hz and hip 100~Hz examples contribute most of the error mass in this subset, while hip 25~Hz remains comparatively stable. This pattern is consistent with known sensitivity of step-event signatures to placement and motion style.
+The modality breakdown indicates that wrist 25~Hz and hip 100~Hz examples contribute most of the error mass in this subset, while hip 25~Hz remains comparatively stable. This pattern is consistent with known sensitivity of step-event signatures to placement and motion style. Furthermore, the high error on the Hip 100~Hz examples compared to Hip 25~Hz introduces a "modality paradox". A likely hypothesis is that downsampling 100~Hz data to 50~Hz via linear interpolation without a proper low-pass anti-aliasing filter introduced high-frequency artifacts that disrupted the model.
 
 \section{Real-Time Demo}
-Two real-time demos are implemented: a Matplotlib-based live visualization with cumulative counts, and a browser-based dashboard with live traces and step markers.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\linewidth]{fig/counterpython.png}
-\caption{Matplotlib-based real-time demo showing live acceleration traces and cumulative step count.}
-\label{fig:counter_python}
-\end{figure}
-
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\linewidth]{fig/realtimeweb.jpeg}
-\caption{Browser-based real-time demo showing live acceleration traces and detected step events.}
-\label{fig:realtime_web}
-\end{figure}
+Two real-time demos are implemented: a Matplotlib-based live visualization with cumulative counts, and a browser-based dashboard with live traces and step markers (see Appendix~\ref{fig:realtimeweb} for full-size screenshots).
 
 Both demos process only newly arrived samples and support session reset handling.
 
@@ -257,7 +265,7 @@ In both examples, detected events align well with oscillatory peaks in accelerat
 The system provides a unified API for offline grading and real-time deployment, and its causal chunk-wise update strategy is well suited for streaming operation. It also demonstrates good accuracy on personal test recordings and offers a reproducible inference and visualization workflow that supports transparent analysis.
 
 \subsection{Limitations}
-Generalization gaps remain across participants and placement modalities, especially in wrist scenarios with irregular arm motion. In addition, the current threshold/refractory post-processing is globally fixed and may not be optimal for all gait regimes. Evaluation of edge cases, such as abrupt turns, phone handling changes, and non-walking periodic motion, is also still limited.
+Generalization gaps remain across participants and placement modalities, especially in wrist scenarios with irregular arm motion. In addition, the current threshold/refractory post-processing is globally fixed and may not be optimal for all gait regimes. There is also a slight discrepancy in operational cadence limits: the TCN minimum inter-step interval of 0.33~s permits up to $\sim$180 steps per minute, whereas the ACF baseline is explicitly constrained to a maximum of 2.8~Hz ($\sim$168 steps per minute). As a result, the TCN might double-count during extreme fast-paced movements that the ACF would natively filter. For the ACF baseline specifically, performance depends on a sufficiently periodic signal; when cadence changes rapidly or periodicity is weak, period estimation and peak selection become less stable. Evaluation of edge cases, such as abrupt turns, phone handling changes, and non-walking periodic motion, is also still limited.
 
 \subsection{Threats to Validity}
 Threats to validity are summarized in Table~\ref{tab:validity_threats}.
@@ -267,19 +275,82 @@ Threats to validity are summarized in Table~\ref{tab:validity_threats}.
 \caption{Key threats to validity.}
 \label{tab:validity_threats}
 \small
-\begin{tabular}{p{0.20\linewidth}p{0.68\linewidth}}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.30\columnwidth}>{\raggedright\arraybackslash}X@{}}
 \toprule
 Threat & Description \\
 \midrule
-Limited personal-session count & Personal-session evaluation includes only two recordings and may overestimate robustness. \\
-Limited calibration subset size & Deterministic subset calibration uses few samples and is better interpreted as stress testing than comprehensive benchmarking. \\
+Limited personal sessions & Personal-session evaluation includes only two recordings and may overestimate robustness. \\
+Limited subset size & Deterministic subset calibration uses few samples and is better interpreted as stress testing than comprehensive benchmarking. \\
 Ground-truth uncertainty & Free-living annotation uncertainty can affect event-level alignment even when aggregate counts remain accurate. \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \subsection{Future Work}
-Future improvements include domain adaptation for placement shifts, uncertainty-aware decision thresholds, and lightweight personalization from short calibration walks. Additional ablations on context length, threshold settings, and sampling-rate robustness would further clarify performance trade-offs for deployment.
+Future improvements include domain adaptation for placement shifts, uncertainty-aware decision thresholds, and lightweight personalization from short calibration walks. Additional ablations on context length, threshold settings, and sampling-rate robustness would further clarify performance trade-offs for deployment. A hybrid strategy is also promising: use ACF for ultra-lightweight initialization and fallback, and use the TCN model when higher accuracy is required.
 
 \section{Conclusion}
 This work presents an end-to-end smartphone IMU step-counting system that unifies offline processing and real-time streaming under a single causal neural framework. The model delivers strong counting accuracy on personal recordings and demonstrates practical deployability through live demos. At the same time, subset-level analysis reveals meaningful cross-domain challenges, especially for certain wrist and participant conditions. Overall, the implementation provides a strong reproducible baseline and a clear path toward improved robustness through modality-aware adaptation and personalization.
+
+
+
+
+\begin{table*}[htbp]
+\centering
+\caption{Appendix: Training summary for the TCN model.}
+\label{tab:appendix_tcn_summary}
+\small
+\begin{tabularx}{\textwidth}{@{}l c l c@{}}
+\toprule
+Metric & Value & Metric & Value \\
+\midrule
+Best epoch & 4 & Best validation loss & 0.3732 \\
+Test loss & 0.4562 & Test event loss & 0.3364 \\
+Test count loss & 0.7992 & Test count MAE & 0.4840 \\
+Sample rate (Hz) & 50.0 & Window seconds & 4.0 \\
+Stride seconds & 0.5 & Label sigma seconds & 0.06 \\
+Window size (samples) & 200 & Packed cache used & true \\
+Train windows & 649,794 & Validation windows & 210,000 \\
+Test windows & 230,164 & Checkpoint & artifacts\_all\_retrain/stepnet\_tcn\_best.pt \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{table*}[htbp]
+\centering
+\caption{Epoch-wise training history of the TCN model.}
+\label{tab:appendix_tcn_history}
+\small
+\begin{tabular}{@{}c c c c c c@{}}
+\toprule
+Epoch & Train loss & Val loss & Train count loss & Val count loss & Val count MAE \\
+\midrule
+1 & 0.5158 & 0.3736 & 1.0806 & 0.5963 & 0.3726 \\
+2 & 0.4529 & 0.3753 & 0.8003 & 0.6186 & 0.3798 \\
+3 & 0.4312 & 0.3787 & 0.7095 & 0.5819 & 0.3664 \\
+4 & 0.4169 & 0.3732 & 0.6480 & 0.6205 & 0.3992 \\
+5 & 0.4068 & 0.3856 & 0.6038 & 0.6216 & 0.3658 \\
+6 & 0.3983 & 0.3838 & 0.5668 & 0.6306 & 0.3687 \\
+7 & 0.3927 & 0.3938 & 0.5421 & 0.6820 & 0.3951 \\
+8 & 0.3869 & 0.4046 & 0.5141 & 0.7660 & 0.4045 \\
+9 & 0.3825 & 0.4024 & 0.4937 & 0.7313 & 0.3789 \\
+10 & 0.3786 & 0.4052 & 0.4760 & 0.6957 & 0.3950 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig/realtimeweb.jpeg}
+    \caption{Appendix: Browser-based real-time demo showing live acceleration traces and detected step events.}
+    \label{fig:realtimeweb}
+\end{figure*}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig/counterpython.png}
+    \caption{Appendix:  Matplotlib-based real-time demo showing live acceleration traces and cumulative step count.}
+    \label{fig:counterpython}
+\end{figure*}
+
+

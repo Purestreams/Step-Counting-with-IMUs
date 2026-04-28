@@ -1,0 +1,300 @@
+import argparse
+import sys
+import time
+from typing import Any, List, Optional, Tuple
+
+import matplotlib
+import numpy as np
+import requests
+
+from infer_nn_step_counter import NNStepCounter
+from step_counter import StepCounter
+
+
+NON_INTERACTIVE_BACKENDS = {
+    "agg",
+    "pdf",
+    "svg",
+    "ps",
+    "cairo",
+    "template",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Real-time phyphox step counting demo")
+    parser.add_argument("--base-url", type=str, required=True, help="Example: http://192.168.0.42:8080")
+    parser.add_argument("--time-buffer", type=str, default="time", help="phyphox time buffer name")
+    parser.add_argument("--acc-x", type=str, default="ax", help="phyphox x-acc buffer name")
+    parser.add_argument("--acc-y", type=str, default="ay", help="phyphox y-acc buffer name")
+    parser.add_argument("--acc-z", type=str, default="az", help="phyphox z-acc buffer name")
+    parser.add_argument("--poll-interval", type=float, default=0.05, help="Polling interval in seconds")
+    parser.add_argument("--window-seconds", type=float, default=12.0, help="Visible curve window length")
+    parser.add_argument("--backend", type=str, default="heuristic", choices=["heuristic", "nn"], help="Step counter backend")
+    parser.add_argument("--model-path", type=str, default=None, help="Path to NN checkpoint (.pt) when backend=nn")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "mps", "cuda"], help="NN inference device")
+    parser.add_argument("--nn-prob-threshold", type=float, default=0.68, help="Event probability threshold for NN backend")
+    parser.add_argument("--nn-context-seconds", type=float, default=4.0, help="Context length for NN streaming inference")
+    parser.add_argument("--max-points", type=int, default=6000, help="Max points kept in memory")
+    return parser.parse_args()
+
+
+def fetch_new(base_url: str, time_buf: str, acc_bufs: List[str], last_t: Optional[float]) -> dict:
+    if last_t is None:
+        params = {time_buf: "", **{b: "" for b in acc_bufs}}
+    else:
+        params = {time_buf: str(last_t)}
+        for b in acc_bufs:
+            params[b] = f"{last_t}|{time_buf}"
+
+    response = requests.get(base_url.rstrip("/") + "/get", params=params, timeout=2.0)
+    response.raise_for_status()
+    return response.json()
+
+
+def _extract_series(payload: dict, key: str) -> np.ndarray:
+    return np.asarray(payload["buffer"][key]["buffer"], dtype=float)
+
+
+def _find_first_key(keys: List[str], candidates: List[str]) -> Optional[str]:
+    keyset = {k.lower(): k for k in keys}
+    for candidate in candidates:
+        found = keyset.get(candidate.lower())
+        if found is not None:
+            return found
+    for key in keys:
+        low = key.lower()
+        if any(candidate in low for candidate in candidates):
+            return key
+    return None
+
+
+def autodetect_buffers_from_payload(payload: dict) -> Optional[Tuple[str, List[str]]]:
+    buffer = payload.get("buffer", {})
+    if not isinstance(buffer, dict) or len(buffer) == 0:
+        return None
+
+    keys = list(buffer.keys())
+    time_key = _find_first_key(keys, ["time", "timestamp", "t"])
+    x_key = _find_first_key(keys, ["ax", "accx", "acc_x", "x"])
+    y_key = _find_first_key(keys, ["ay", "accy", "acc_y", "y"])
+    z_key = _find_first_key(keys, ["az", "accz", "acc_z", "z"])
+
+    if time_key and x_key and y_key and z_key:
+        return time_key, [x_key, y_key, z_key]
+    return None
+
+
+def probe_and_autodetect_buffers(base_url: str) -> Optional[Tuple[str, List[str]]]:
+    try:
+        response = requests.get(base_url.rstrip("/") + "/get", timeout=2.0)
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException:
+        return None
+
+    return autodetect_buffers_from_payload(payload)
+
+
+def extract_chunk(payload: dict, time_buf: str, acc_bufs: List[str]) -> Tuple[np.ndarray, np.ndarray]:
+    t = _extract_series(payload, time_buf)
+    if t.size == 0:
+        return t, np.empty((0, 3), dtype=float)
+
+    ax = _extract_series(payload, acc_bufs[0])
+    ay = _extract_series(payload, acc_bufs[1])
+    az = _extract_series(payload, acc_bufs[2])
+
+    n = min(t.size, ax.size, ay.size, az.size)
+    t = t[:n]
+    acc = np.stack([ax[:n], ay[:n], az[:n]], axis=1)
+    return t, acc
+
+
+def _ensure_interactive_backend() -> Tuple[Any, str]:
+    backend = matplotlib.get_backend().lower()
+    if backend not in NON_INTERACTIVE_BACKENDS:
+        import matplotlib.pyplot as plt
+
+        return plt, matplotlib.get_backend()
+
+    preferred = ["MacOSX", "TkAgg"] if sys.platform == "darwin" else ["TkAgg", "QtAgg"]
+    for candidate in preferred:
+        try:
+            matplotlib.use(candidate, force=True)
+            import matplotlib.pyplot as plt
+
+            return plt, matplotlib.get_backend()
+        except Exception:
+            continue
+
+    import matplotlib.pyplot as plt
+
+    return plt, matplotlib.get_backend()
+
+
+def main() -> None:
+    args = parse_args()
+    plt, selected_backend = _ensure_interactive_backend()
+
+    if args.backend == "nn":
+        if args.model_path is None:
+            raise ValueError("--model-path is required when --backend nn")
+        counter = NNStepCounter(
+            model_path=args.model_path,
+            device=args.device,
+            prob_threshold=args.nn_prob_threshold,
+            min_step_interval=0.30,
+            context_seconds=args.nn_context_seconds,
+        )
+    else:
+        counter = StepCounter()
+    time_buf = args.time_buffer
+    acc_bufs = [args.acc_x, args.acc_y, args.acc_z]
+
+    last_t = None
+    session_id = None
+
+    t_hist = np.asarray([], dtype=float)
+    amag_hist = np.asarray([], dtype=float)
+    step_hist = np.asarray([], dtype=float)
+
+    plt.ion()
+    fig, ax = plt.subplots(figsize=(11, 5))
+    (curve_line,) = ax.plot([], [], lw=1.8, label="|a| (m/s^2)")
+    (step_points,) = ax.plot([], [], "ro", ms=5, label="Detected steps")
+
+    text_handle = ax.text(
+        0.02,
+        0.95,
+        "Total steps: 0",
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.85},
+    )
+
+    ax.set_title("Real-time Step Counting from phyphox")
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Acceleration magnitude (m/s^2)")
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="upper right")
+    if selected_backend.lower() in NON_INTERACTIVE_BACKENDS:
+        print(
+            "[WARN] Matplotlib is using a non-interactive backend "
+            f"('{selected_backend}'). GUI window may not appear. "
+            "Try running with MPLBACKEND=MacOSX (or TkAgg) in a local terminal."
+        )
+
+    last_error_print_time = 0.0
+
+    while plt.fignum_exists(fig.number):
+        try:
+            payload = fetch_new(args.base_url, time_buf, acc_bufs, last_t)
+        except requests.RequestException as exc:
+            now = time.time()
+            if now - last_error_print_time > 1.0:
+                print(f"[WARN] fetch failed: {type(exc).__name__}: {exc}")
+                last_error_print_time = now
+            time.sleep(args.poll_interval)
+            continue
+
+        status = payload.get("status", {})
+        new_session = status.get("session")
+        if session_id is None:
+            session_id = new_session
+        elif new_session is not None and new_session != session_id:
+            counter.reset()
+            t_hist = np.asarray([], dtype=float)
+            amag_hist = np.asarray([], dtype=float)
+            step_hist = np.asarray([], dtype=float)
+            last_t = None
+            session_id = new_session
+            time.sleep(args.poll_interval)
+            continue
+
+        try:
+            t, acc = extract_chunk(payload, time_buf, acc_bufs)
+        except (KeyError, TypeError, ValueError) as exc:
+            detected = autodetect_buffers_from_payload(payload)
+            if detected is None:
+                detected = probe_and_autodetect_buffers(args.base_url)
+
+            if detected is not None:
+                time_buf, acc_bufs = detected
+                print(f"[INFO] Auto-detected buffers: time={time_buf}, acc={acc_bufs}")
+            else:
+                now = time.time()
+                if now - last_error_print_time > 1.0:
+                    print(
+                        "[WARN] buffer parse failed: "
+                        f"{type(exc).__name__}: {exc}. "
+                        f"Configured time='{time_buf}', acc={acc_bufs}"
+                    )
+                    last_error_print_time = now
+            time.sleep(args.poll_interval)
+            plt.pause(0.001)
+            continue
+
+        if t.size == 0:
+            time.sleep(args.poll_interval)
+            plt.pause(0.001)
+            continue
+
+        out = counter.update({"time": t, "acc": acc})
+        new_step_ts = out["new_step_timestamps"]
+
+        if new_step_ts.size > 0:
+            for step_t in new_step_ts:
+                print(f"[STEP] t={float(step_t):.3f}s total={out['total_steps']}")
+
+        amag = np.sqrt(np.sum(acc * acc, axis=1))
+        t_hist = np.concatenate([t_hist, t])
+        amag_hist = np.concatenate([amag_hist, amag])
+        if new_step_ts.size > 0:
+            step_hist = np.concatenate([step_hist, new_step_ts])
+
+        if t_hist.size > args.max_points:
+            t_hist = t_hist[-args.max_points :]
+            amag_hist = amag_hist[-args.max_points :]
+
+        if step_hist.size > args.max_points:
+            step_hist = step_hist[-args.max_points :]
+
+        last_t = float(t[-1])
+
+        window_start = max(float(t_hist[-1]) - float(args.window_seconds), float(t_hist[0]))
+        keep = t_hist >= window_start
+        t_view = t_hist[keep]
+        a_view = amag_hist[keep]
+
+        step_keep = step_hist >= window_start
+        step_view = step_hist[step_keep]
+
+        if t_view.size > 0:
+            curve_line.set_data(t_view, a_view)
+            ax.set_xlim(t_view[0], t_view[-1] + 1e-6)
+
+            if a_view.size > 0:
+                pad = max(0.2, 0.15 * (a_view.max() - a_view.min() + 1e-6))
+                ax.set_ylim(a_view.min() - pad, a_view.max() + pad)
+
+            if step_view.size > 0:
+                step_vals = np.interp(step_view, t_view, a_view)
+                step_points.set_data(step_view, step_vals)
+            else:
+                step_points.set_data([], [])
+
+        text_handle.set_text(
+            f"Total steps: {out['total_steps']}\n"
+            f"New steps in chunk: {out['new_steps']}\n"
+            f"Last chunk samples: {t.size}"
+        )
+
+        fig.canvas.draw_idle()
+        plt.pause(0.001)
+        time.sleep(args.poll_interval)
+
+
+if __name__ == "__main__":
+    main()
