@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1775639352.58996 "main.aux" "main.bbl" "main" 1775639356.00262 0
+["bibtex main"] 1775651019.68061 "main.aux" "main.bbl" "main" 1775656899.20999 0
   "./ACM-Reference-Format.bst" 1772685634 90330 871e55fb6d8dc37a22e9e4941a79e593 ""
   "./refs.bib" 1775637892.41935 724 a4c7eb878783df7cbe4bdf7b43d34b13 ""
-  "main.aux" 1775639355.50602 7972 419b14ab0aec7da47adbc8584cdb4546 "pdflatex"
+  "main.aux" 1775656898.75776 8963 74cd35cd94e6265d7c3c0da6a55cb1d6 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1775639352.71254 "main.tex" "main.pdf" "main" 1775639356.00279 2
+["pdflatex"] 1775656895.49667 "main.tex" "main.pdf" "main" 1775656899.21013 2
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc" 1490131464 2921 8ca0eb0831f9bc5da080d3697cfe67bf ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc" 1490131464 2933 9ad527ce78d7c5fa0a642dead095f172 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc" 1490131464 2934 a4a9158faed2e9e89c771b4e3b7fc12f ""
@@ -69,6 +69,7 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/libertine/LinLibertineTZ.pfb" 1354061736 526513 df8837485c436abdc438032d23b309fa ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/LibertineMathMI.pfb" 1569879884 35829 268d1d114c9114e541f92817aec4230d ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/LibertineMathMI7.pfb" 1575323900 36894 0893e50696ed2a200373455c6aff080e ""
+  "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/NewTXMI.pfb" 1724614892 32409 aee30089ce2d804d7327a2f8ccff0462 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/txexs.pfb" 1621283831 33424 f912ebe54685d0a65d3c046e3d517e38 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/txmiaX.pfb" 1736550153 65081 1217ccf27de85b7db49806ee29c16745 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/txsys.pfb" 1724614892 45985 fd5f8adcc4f0e93e9a95469e12126723 ""
@@ -209,7 +210,9 @@
   "/usr/local/texlive/2025/texmf-dist/tex/latex/subfig/subfig.sty" 1158586182 21369 9ef165ca6df8815c92e693146a376c92 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/textcase/textcase.sty" 1739825035 3164 6b6fe33a41126007f2392b3b931bd33f ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/threeparttable/threeparttable.sty" 1267981840 13506 a4e71a27db1a69b6fabada5beebf0844 ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/tools/array.sty" 1730496337 14552 27664839421e418b87f56fa4c6f66b1a ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/tools/enumerate.sty" 1717359999 3468 ad69b54642e68f9fdf39ec1a16dd7341 ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/tools/tabularx.sty" 1717359999 7243 e5dac1240636811edb77568b81818372 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/tools/xspace.sty" 1717359999 4545 e3f4de576c914e2000f07f69a891c071 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/totpages/totpages.sty" 1137110984 7670 b07e668265cf485332abe582e7ed306e ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/trimspaces/trimspaces.sty" 1253232110 1380 971a51b00a14503ddf754cab24c3f209 ""
@@ -223,17 +226,17 @@
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1741450574 3345740 46b66fdb0378f7bf5921b5eabf1762b8 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
   "acmart.cls" 1775638892.05411 107515 e90ad74c4e549d684afdbd4f1b653a4d ""
-  "body.tex" 1775639228.58166 15524 3a485acc675e19ce0199b533081bbe28 ""
+  "body.tex" 1775656893.14169 21352 0175e7f2edee8d576d7a53fcb16f2152 ""
+  "fig/acf_testcases_signal.png" 1775649721.5649 256512 6adafe32e1d8a7da51dc4fce457ff190 ""
   "fig/calibration_subset_abs_error.png" 1775637745.89951 65742 1cb669b55cfc3c1c9a028d43f208c5fc ""
   "fig/counterpython.png" 1775638707.50152 85379 825b634ac105605105b4ef8c3393807c ""
   "fig/realtimeweb.jpeg" 1775635099.54772 286447 6757614297d4cbdbe3508b3d17e69615 ""
-  "fig/self_sessions_gt_vs_est.png" 1775637745.96605 52032 b89d081dfc72c4df283dc78e555916d3 ""
   "fig/test1-84step_plot.png" 1775636657.93788 422250 81f644a0f39bc18d5af3e3b2e57ea454 ""
   "fig/test2-100steps_plot.png" 1775636658.17945 424292 0ef253a4c09c8a995a3d18c455949a4d ""
-  "main.aux" 1775639355.50602 7972 419b14ab0aec7da47adbc8584cdb4546 "pdflatex"
-  "main.bbl" 1775639352.71132 2967 2c8c7004f2435f10d5660b90da2b71f1 "bibtex main"
-  "main.out" 1775639355.50711 3823 84c4b1de9fc8b45aab6a2d432c73e3f2 "pdflatex"
-  "main.tex" 1775637892.41937 4010 bd258b76fbb321b502e447b4641a6e12 ""
+  "main.aux" 1775656898.75776 8963 74cd35cd94e6265d7c3c0da6a55cb1d6 "pdflatex"
+  "main.bbl" 1775651019.79328 2967 2c8c7004f2435f10d5660b90da2b71f1 "bibtex main"
+  "main.out" 1775656898.75881 4225 da80897a1823b341bb6e04058c6d095d "pdflatex"
+  "main.tex" 1775640105.82097 4051 4fe894304d921f44a907f734b68ddfe9 ""
   (generated)
   "main.aux"
   "main.log"

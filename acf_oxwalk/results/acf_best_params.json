@@ -1,0 +1,174 @@
+{
+  "dataset_root": "testdata/OxWalk_Dec2022",
+  "sample_rate_hz": 50.0,
+  "max_seconds": 100.0,
+  "n_records": 156,
+  "grid_size": 162,
+  "num_workers": 8,
+  "best": {
+    "params": {
+      "sample_rate_hz": 50.0,
+      "step_hz_min": 1.2,
+      "step_hz_max": 2.8,
+      "detrend_seconds": 1.0,
+      "smooth_seconds": 0.14,
+      "prominence_std": 0.7,
+      "min_distance_ratio": 0.65,
+      "min_acf_peak": 0.12
+    },
+    "mae": 29.121794871794872,
+    "mape_percent": 256.7061584325377
+  },
+  "top10": [
+    {
+      "rank": 1,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.65,
+        "min_acf_peak": 0.12
+      },
+      "mae": 29.121794871794872,
+      "mape_percent": 256.7061584325377
+    },
+    {
+      "rank": 2,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.55,
+        "min_acf_peak": 0.12
+      },
+      "mae": 31.134615384615383,
+      "mape_percent": 270.9122143162684
+    },
+    {
+      "rank": 3,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.1,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.65,
+        "min_acf_peak": 0.12
+      },
+      "mae": 32.8525641025641,
+      "mape_percent": 291.14693134626896
+    },
+    {
+      "rank": 4,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.45,
+        "min_acf_peak": 0.12
+      },
+      "mae": 33.23076923076923,
+      "mape_percent": 290.49872815400084
+    },
+    {
+      "rank": 5,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.1,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.55,
+        "min_acf_peak": 0.12
+      },
+      "mae": 35.35897435897436,
+      "mape_percent": 309.9038824337322
+    },
+    {
+      "rank": 6,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.65,
+        "min_acf_peak": 0.18
+      },
+      "mae": 35.743589743589745,
+      "mape_percent": 318.94941561376004
+    },
+    {
+      "rank": 7,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 0.6,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.65,
+        "min_acf_peak": 0.12
+      },
+      "mae": 36.03846153846154,
+      "mape_percent": 307.2457663788979
+    },
+    {
+      "rank": 8,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.5,
+        "min_distance_ratio": 0.65,
+        "min_acf_peak": 0.12
+      },
+      "mae": 36.44871794871795,
+      "mape_percent": 302.1217410099324
+    },
+    {
+      "rank": 9,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 1.0,
+        "smooth_seconds": 0.1,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.45,
+        "min_acf_peak": 0.12
+      },
+      "mae": 38.21153846153846,
+      "mape_percent": 336.29434707958785
+    },
+    {
+      "rank": 10,
+      "params": {
+        "sample_rate_hz": 50.0,
+        "step_hz_min": 1.2,
+        "step_hz_max": 2.8,
+        "detrend_seconds": 0.6,
+        "smooth_seconds": 0.14,
+        "prominence_std": 0.7,
+        "min_distance_ratio": 0.55,
+        "min_acf_peak": 0.12
+      },
+      "mae": 38.37820512820513,
+      "mape_percent": 324.8339313145609
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+numpy
+matplotlib
+requests
+flask
+torch
+tqdm

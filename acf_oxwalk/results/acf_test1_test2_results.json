@@ -1,0 +1,49 @@
+{
+  "config_json": "/Users/mio/Vsc/Step-Counting-with-IMUs/acf_oxwalk/results/acf_best_params.json",
+  "params": {
+    "sample_rate_hz": 50.0,
+    "step_hz_min": 1.2,
+    "step_hz_max": 2.8,
+    "detrend_seconds": 1.0,
+    "smooth_seconds": 0.14,
+    "prominence_std": 0.7,
+    "min_distance_ratio": 0.65,
+    "min_acf_peak": 0.12
+  },
+  "results": [
+    {
+      "case": "test1-84step",
+      "ground_truth": 84,
+      "estimated": 88,
+      "abs_error": 4,
+      "rel_error_percent": 4.761904761904762,
+      "samples": 6100,
+      "duration_sec": 60.957662750021996,
+      "diagnostics": {
+        "acf_peak": 0.31244640178975663,
+        "period_samples": 60,
+        "threshold": 1.4182770367014264,
+        "min_distance_samples": 39,
+        "estimated_sample_rate_hz": 100.0500250125065
+      }
+    },
+    {
+      "case": "test2-100steps",
+      "ground_truth": 100,
+      "estimated": 97,
+      "abs_error": 3,
+      "rel_error_percent": 3.0,
+      "samples": 6585,
+      "duration_sec": 65.808907585046,
+      "diagnostics": {
+        "acf_peak": 0.24168729295848804,
+        "period_samples": 62,
+        "threshold": 1.165853193316637,
+        "min_distance_samples": 40,
+        "estimated_sample_rate_hz": 100.05002501247093
+      }
+    }
+  ],
+  "mae": 3.5,
+  "mape_percent": 3.880952380952381
+}

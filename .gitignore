@@ -211,3 +211,8 @@ __marimo__/
 report.md
 testdata/*
 .DS_Store
+final.7z
+newsubmission/models/phyphox_data_packed.pt
+
+# Ignore large 50hz model file
+submission/models/phyphox_data_packed_50hz.pt
